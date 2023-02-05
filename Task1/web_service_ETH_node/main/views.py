@@ -28,7 +28,7 @@ def index(request):
                     mining = w3.eth.mining
                     maxFee = w3.eth.max_priority_fee
                     response = render(request, 'main/ETHBlockchainInfo.html', {'status': status, 'blockNumber': blockNumber, 'price': price, 'protocol': protocol,
-                               'chainId': chainId, 'hashrate': hashrate, 'mining': mining, 'maxFee': maxFee, 'provider_url': provider_url})
+                               'chainId': chainId, 'hashrate': hashrate, 'mining': mining, 'maxFee': maxFee, 'provider_url': provider_url, 'form': form})
                     response.set_cookie('provider_url', provider_url)
                     response.set_cookie('status', status)
                     response.set_cookie('blockNumber', blockNumber)
