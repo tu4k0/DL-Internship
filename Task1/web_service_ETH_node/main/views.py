@@ -69,16 +69,18 @@ def getETHBlockchainInfo(request):
 
 def getETHBlockInfo(request):
     if request.method == 'POST':
-        block_number = int(request.POST['block_number'])
+        block_number = request.POST['block_number']
         provider_url = request.COOKIES.get('provider_url')
         w3 = Web3(Web3.HTTPProvider(provider_url))
         latest_block = int(w3.eth.get_block_number())
-        if block_number > latest_block:
+        if str(block_number).isalpha():
+            return HttpResponseNotFound('<h1>Error 515: Entered block number invalid</h1>')
+        if int(block_number) > latest_block:
             return HttpResponseNotFound('<h1>Error 510: Entered block number don`t exist</h1>')
         else:
             status = w3.isConnected()
             if status == True:
-                block = w3.eth.get_block(block_number)
+                block = w3.eth.get_block(int(block_number))
                 block_info = dict(block)
                 block_hash = block_info.get('hash').hex()
                 prev_block_hash = block_info.get('parentHash').hex()
@@ -87,7 +89,7 @@ def getETHBlockInfo(request):
                 miner = block_info.get('miner')
                 difficulty = block_info.get('difficulty')
                 nonce = int(block_info.get('nonce').hex(), 16)
-                txcount = int(w3.eth.get_block_transaction_count(block_number))
+                txcount = int(w3.eth.get_block_transaction_count(int(block_number)))
                 txroot = block_info.get('transactionsRoot').hex()
                 return render(request, 'main/ETHBlockInfo.html', {'block_number': block_number, 'block_hash': block_hash, 'prev_block_hash': prev_block_hash, 'timestamp': timestamp, 'size': size, 'miner': miner, 'difficulty': difficulty, 'nonce': nonce, 'txcount': txcount, 'txroot': txroot})
             else:
