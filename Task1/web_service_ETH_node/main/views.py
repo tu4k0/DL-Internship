@@ -2,6 +2,7 @@ from django.http import HttpResponse, HttpResponseNotFound
 from django.shortcuts import render, redirect
 from django.contrib import messages
 from web3 import Web3
+from main.services.blockchain.blockchain_interface import *
 
 from .forms import *
 from .models import *
@@ -15,8 +16,8 @@ def getETHBlockchainInfo(request):
         else:
             form = ETHNode(data=request.GET or {})
             if form.is_valid():
-                provider_url = request.GET.get('node_url')
-                w3 = Web3(Web3.HTTPProvider(provider_url))
+                ethNode = EthBlockchain(request.GET.get('node_url'))
+                return ethNode.getBlockchainInfo()
                 status = w3.isConnected()
                 if status == True:
                     blockNumber = w3.eth.blockNumber
@@ -30,7 +31,7 @@ def getETHBlockchainInfo(request):
                                       {'status': status, 'blockNumber': blockNumber, 'price': price,
                                        'protocol': protocol,
                                        'chainId': chainId, 'hashrate': hashrate, 'mining': mining, 'maxFee': maxFee,
-                                       'provider_url': provider_url, 'form': form})
+                                       'provider_url': ethNode.nodeUrl, 'form': form})
                     response.set_cookie('provider_url', provider_url)
                     response.set_cookie('status', status)
                     response.set_cookie('blockNumber', blockNumber)
@@ -91,7 +92,10 @@ def getETHBlockInfo(request):
                 nonce = int(block_info.get('nonce').hex(), 16)
                 txcount = int(w3.eth.get_block_transaction_count(int(block_number)))
                 txroot = block_info.get('transactionsRoot').hex()
-                return render(request, 'main/ETHBlockInfo.html', {'block_number': block_number, 'block_hash': block_hash, 'prev_block_hash': prev_block_hash, 'timestamp': timestamp, 'size': size, 'miner': miner, 'difficulty': difficulty, 'nonce': nonce, 'txcount': txcount, 'txroot': txroot})
+                return render(request, 'main/ETHBlockInfo.html',
+                              {'block_number': block_number, 'block_hash': block_hash,
+                               'prev_block_hash': prev_block_hash, 'timestamp': timestamp, 'size': size, 'miner': miner,
+                               'difficulty': difficulty, 'nonce': nonce, 'txcount': txcount, 'txroot': txroot})
             else:
                 return HttpResponseNotFound('<h1>Error 500: Node not found/connected</h1>')
     return render(request, 'main/ETHBlockInfo.html')
