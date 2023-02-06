@@ -15,3 +15,7 @@ class AddETHBlockchainInfo(forms.Form):
 
 class ETHNode(forms.Form):
     node_url = forms.CharField(widget=forms.Textarea(attrs={'cols': 45, 'rows': 1}), label="Enter Node url")
+
+
+class ETHBlock(forms.Form):
+    block_number = forms.CharField(widget=forms.Textarea(attrs={'cols': 40, 'rows': 1}), label="Block number")
