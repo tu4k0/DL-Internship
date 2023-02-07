@@ -1,8 +1,7 @@
 from django.http import HttpResponse, HttpResponseNotFound
-from django.shortcuts import render, redirect
+from django.shortcuts import render
 from django.contrib import messages
 from main.services.blockchain.blockchain_interface import *
-from web3 import Web3
 
 from .forms import *
 from .models import *
