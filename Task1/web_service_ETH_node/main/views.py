@@ -1,53 +1,40 @@
 from django.http import HttpResponse, HttpResponseNotFound
 from django.shortcuts import render, redirect
 from django.contrib import messages
-from web3 import Web3
 from main.services.blockchain.blockchain_interface import *
+from web3 import Web3
 
 from .forms import *
 from .models import *
 
 
-def getETHBlockchainInfo(request):
+def getBlockchainInfo(request):
     if request.method == 'GET':
         if not request.GET.get('node_url'):
             form = ETHNode()
-            return render(request, 'main/ETHBlockchainInfo.html', {'form': form})
+            return render(request, 'main/BlockchainInfo.html', {'form': form})
         else:
-            form = ETHNode(data=request.GET or {})
-            if form.is_valid():
+            if str(request.GET.get('node_url')).find('infura') == 0 or str(request.GET.get('node_url')).find('ganache') == 0:
+                return HttpResponseNotFound('<h1>Bitcoin monitoring form</h1>')
+            else:
+                form = ETHNode(data=request.GET or {})
                 ethNode = EthBlockchain(request.GET.get('node_url'))
-                return ethNode.getBlockchainInfo()
-                status = w3.isConnected()
-                if status == True:
-                    blockNumber = w3.eth.blockNumber
-                    price = w3.eth.gas_price
-                    protocol = w3.eth.protocol_version
-                    chainId = w3.eth.chain_id
-                    hashrate = w3.eth.hashrate
-                    mining = w3.eth.mining
-                    maxFee = w3.eth.max_priority_fee
-                    response = render(request, 'main/ETHBlockchainInfo.html',
-                                      {'status': status, 'blockNumber': blockNumber, 'price': price,
-                                       'protocol': protocol,
-                                       'chainId': chainId, 'hashrate': hashrate, 'mining': mining, 'maxFee': maxFee,
-                                       'provider_url': ethNode.nodeUrl, 'form': form})
-                    response.set_cookie('provider_url', provider_url)
-                    response.set_cookie('status', status)
-                    response.set_cookie('blockNumber', blockNumber)
-                    response.set_cookie('price', price)
-                    response.set_cookie('protocol', protocol)
-                    response.set_cookie('chainId', chainId)
-                    response.set_cookie('hashrate', hashrate)
-                    response.set_cookie('mining', mining)
-                    response.set_cookie('maxFee', maxFee)
+                blockchain = 'ETH'
+                if ethNode.status:
+                    response = render(request, 'main/BlockchainInfo.html', {'ethNode': ethNode, 'form': form,
+                                                                                'ethNode.getBlockchainInfo': ethNode.getBlockchainInfo(), 'blockchain': blockchain})
+                    response.set_cookie('provider_url', ethNode.nodeUrl)
+                    response.set_cookie('status', ethNode.status)
+                    ethInfo = list(ethNode.getBlockchainInfo().__dict__.keys())
+                    for value in ethInfo:
+                        response.set_cookie(value, ethNode.getBlockchainInfo().__dict__.get(value))
                     return response
-                if status == False:
+                if not ethNode.status:
                     return HttpResponseNotFound('<h1>Error 500: Node not found/connected</h1>')
     if request.method == 'POST':
         form = ETHNode(data=request.GET or {})
+        ethNode = EthBlockchain(request.GET.get('node_url'))
         provider_url = request.COOKIES.get('provider_url')
-        status = request.COOKIES.get('status')
         blockNumber = request.COOKIES.get('blockNumber')
         price = request.COOKIES.get('price')
         protocol = request.COOKIES.get('protocol')
@@ -59,29 +46,23 @@ def getETHBlockchainInfo(request):
                                  id_chain=chainId, hashrate=hashrate, mining=mining, maxFee=maxFee)
         info.save()
         messages.success(request, 'ETH statistics successfully saved in Database')
-        return render(request, 'main/ETHBlockchainInfo.html',
-                      {'blockNumber': blockNumber, 'price': price, 'protocol': protocol,
-                       'chainId': chainId, 'hashrate': hashrate, 'mining': mining, 'maxFee': maxFee,
-                       'provider_url': provider_url, 'form': form, 'status': status})
+        return render(request, 'main/BlockchainInfo.html', {'ethNode': ethNode, 'form': form, 'ethNode.getBlockchainInfo': ethNode.getBlockchainInfo()})
     else:
         form = ETHNode()
-    return render(request, 'main/ETHBlockchainInfo.html', {'form': form})
+    return render(request, 'main/BlockchainInfo.html', {'form': form})
 
 
 def getETHBlockInfo(request):
     if request.method == 'POST':
         block_number = request.POST['block_number']
-        provider_url = request.COOKIES.get('provider_url')
-        w3 = Web3(Web3.HTTPProvider(provider_url))
-        latest_block = int(w3.eth.get_block_number())
+        ethNode = EthBlockchain(request.COOKIES.get('provider_url'))
         if str(block_number).isalpha():
             return HttpResponseNotFound('<h1>Error 515: Entered block number invalid</h1>')
-        if int(block_number) > latest_block:
-            return HttpResponseNotFound('<h1>Error 510: Entered block number don`t exist</h1>')
+        if int(block_number) > ethNode.web3.eth.get_block_number():
+            return HttpResponseNotFound('<h1>Error 510: Entered block number not exist</h1>')
         else:
-            status = w3.isConnected()
-            if status == True:
-                block = w3.eth.get_block(int(block_number))
+            if ethNode.status == True:
+                block = ethNode.web3.eth.get_block(int(block_number))
                 block_info = dict(block)
                 block_hash = block_info.get('hash').hex()
                 prev_block_hash = block_info.get('parentHash').hex()
@@ -90,12 +71,12 @@ def getETHBlockInfo(request):
                 miner = block_info.get('miner')
                 difficulty = block_info.get('difficulty')
                 nonce = int(block_info.get('nonce').hex(), 16)
-                txcount = int(w3.eth.get_block_transaction_count(int(block_number)))
+                txcount = int(ethNode.web3.eth.get_block_transaction_count(int(block_number)))
                 txroot = block_info.get('transactionsRoot').hex()
-                return render(request, 'main/ETHBlockInfo.html',
-                              {'block_number': block_number, 'block_hash': block_hash,
-                               'prev_block_hash': prev_block_hash, 'timestamp': timestamp, 'size': size, 'miner': miner,
-                               'difficulty': difficulty, 'nonce': nonce, 'txcount': txcount, 'txroot': txroot})
+                context = {'block_number': block_number, 'block_hash': block_hash,
+                           'prev_block_hash': prev_block_hash, 'timestamp': timestamp, 'size': size, 'miner': miner,
+                           'difficulty': difficulty, 'nonce': nonce, 'txcount': txcount, 'txroot': txroot}
+                return render(request, 'main/ETHBlockInfo.html', context)
             else:
                 return HttpResponseNotFound('<h1>Error 500: Node not found/connected</h1>')
     return render(request, 'main/ETHBlockInfo.html')

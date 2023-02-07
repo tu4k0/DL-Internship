@@ -2,6 +2,6 @@ from django.urls import path
 from .views import *
 
 urlpatterns = [
-    path('', getETHBlockchainInfo, name='ETHBlockchainInfo'),
+    path('', getBlockchainInfo, name='BlockchainInfo'),
     path('/Block Info', getETHBlockInfo, name='ETHBlockInfo'),
 ]
