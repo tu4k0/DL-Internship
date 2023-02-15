@@ -91,7 +91,7 @@ class BtcBlockchain(BaseBlockchain):
             raise Exception('Node Url invalid')
 
     def createVersionMessage(self, node):
-        version = struct.pack("i", 70015)
+        version = struct.pack("i", 70016)
         services = struct.pack("Q", 0)
         timestamp = struct.pack("q", int(time.time()))
 
