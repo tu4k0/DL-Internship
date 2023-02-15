@@ -136,6 +136,9 @@ class BtcBlockchain(BaseBlockchain):
         checksum = hashlib.sha256(hashlib.sha256(payload).digest()).digest()[:4]
         return magic + command + length + checksum + payload
 
+    def closeConnection(self):
+        return self.socket.close()
+
 
 if __name__ == '__main__':
     print('Service for manual node connection to Blockchain networks')
@@ -162,4 +165,3 @@ if __name__ == '__main__':
         rec = BTC.socket.recv(1024)
         print(binascii.hexlify(getdata_message))
         print(binascii.hexlify(rec))
-
