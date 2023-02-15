@@ -100,7 +100,7 @@ class BtcBlockchain(BaseBlockchain):
         add_recv += struct.pack(">H", 8333)
 
         add_from = struct.pack("Q", 0)
-        add_from += struct.pack(">16s", bytes("127.0.0.1", 'utf-8'))
+        add_from += struct.pack(">16s", bytes("192.168.0.100", 'utf-8'))
         add_from += struct.pack(">H", 8333)
 
         nonce = struct.pack("Q", random.getrandbits(64))
@@ -124,7 +124,7 @@ class BtcBlockchain(BaseBlockchain):
 
     def getData(self, block_hash):
         count = 1
-        type = 2
+        type = 1
         hash = bytearray.fromhex(block_hash)
         payload = struct.pack('<bb32s', count, type, hash)
         return payload
@@ -155,22 +155,11 @@ if __name__ == '__main__':
         print(BTC.encodeReceivedMessage(BTC.socket.recv(1024))[1])
         print('Verack message: ')
         print(BTC.socket.recv(1024))
-        # verMessage = BTC.createVersionMessage(node)
-        # print('Send -Version- message to node')
-        # BTC.socket.send(verMessage)
-        # time.sleep(1)
-        # print('Receive -Version- message from node')
-        # encoded_values = BTC.encodeReceivedMessage(BTC.socket.recv(8192))
-        # print("Version ping result: ", encoded_values)
-        # print('Verack: ')
-        # verack = BTC.createVerackMessage()
-        # send = BTC.socket.send(verack)
-        # receive = BTC.socket.recv(8192)
-        # print(binascii.hexlify(receive))
-        # print('GetData: ')
-        # data = BTC.getData('1dbd981fe6985776b644b173a4d0385ddc1aa2a829688d1e0000000000000000')
-        # getdata_message = BTC.create_message(0xd9b4bef9, 'getdata', data)
-        # sendy = BTC.socket.send(getdata_message)
-        # rec = BTC.socket.recv(1024)
-        # print(sendy)
-        # print(binascii.hexlify(rec))
+        print('GetData: ')
+        data = BTC.getData('1dbd981fe6985776b644b173a4d0385ddc1aa2a829688d1e0000000000000000')
+        getdata_message = BTC.makeMessage('getdata', data)
+        sendy = BTC.socket.send(getdata_message)
+        rec = BTC.socket.recv(1024)
+        print(binascii.hexlify(getdata_message))
+        print(binascii.hexlify(rec))
+
