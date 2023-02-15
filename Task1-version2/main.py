@@ -145,8 +145,16 @@ class BtcBlockchain(BaseBlockchain):
         return magic + command + length + checksum + payload
 
     def createPingMessage(self):
-        nonce = random.randint(1, 1**32)
+        nonce = random.randint(1, 1 ** 32)
         payload = struct.pack('<Q', nonce)
+        return payload
+
+    def createGetHeadersMessage(self):
+        version = struct.pack("i", 70015)
+        hash_count = struct.pack("i", 1)
+        block_header_hashes = struct.pack('s', bytearray.fromhex("8C2ACBC70D503FDC36787AC0EE0916D4C504DD1624AA05000000000000000000"))
+        stop_hash = b"0"
+        payload = version + hash_count + block_header_hashes + stop_hash
         return payload
 
     def closeConnection(self):
@@ -154,7 +162,7 @@ class BtcBlockchain(BaseBlockchain):
 
 
 if __name__ == '__main__':
-    print('Service for manual node connection to Blockchain networks')
+    print('Service for manual node connection to Blockchain networks (BTC/ETH)')
     blockchainName = 'BTC'
     if blockchainName == 'BTC':
         BTC = BtcBlockchain()
@@ -178,22 +186,28 @@ if __name__ == '__main__':
         verack_request = BTC.makeMessage("verack", BTC.createVerackMessage())
         BTC.socket.send(verack_request)
         print('Request: ', verack_request)
-        print('Ping message: ')
-        ping_request = BTC.makeMessage("ping", BTC.createPingMessage())
-        BTC.socket.send(ping_request)
-        print('Request: ', ping_request)
-        ping_response = BTC.socket.recv(1024)
-        print('Response: ', ping_response)
+        print('GetHeadersBlocks: ')
+        block_request = BTC.makeMessage("getheaders", BTC.createGetHeadersMessage())
+        BTC.socket.send(block_request)
+        print('Request: ', block_request)
+        block_response = BTC.socket.recv(1024)
+        print('Response: ', block_response)
         print('GetData: ')
         data = BTC.getData('1dbd981fe6985776b644b173a4d0385ddc1aa2a829688d1e0000000000000000')
         getdata_message = BTC.makeMessage('getdata', data)
         sendy = BTC.socket.send(getdata_message)
         rec = BTC.socket.recv(1024)
-        print(binascii.hexlify(getdata_message))
-        print(binascii.hexlify(rec))
+        print(getdata_message)
+        print(rec)
         print('GetAddr: ')
         getAddr_request = BTC.createGetAddrMessage()
         BTC.socket.send(getAddr_request)
         print('Request: ', getAddr_request)
         getAddr_response = BTC.socket.recv(1024)
         print('Response: ', getAddr_response)
+        print('Ping message: ')
+        ping_request = BTC.makeMessage("ping", BTC.createPingMessage())
+        BTC.socket.send(ping_request)
+        print('Request: ', ping_request)
+        ping_response = BTC.socket.recv(1024)
+        print('Response: ', ping_response)
