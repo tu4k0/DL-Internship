@@ -6,5 +6,5 @@ class EthBlockchain(BaseBlockchain):
     def __init__(self):
         super().__init__()
 
-    def create_tx_getdata_message(self, tx_id):
+    def create_tx_getdata_message(self, tx_id) -> bytes:
         pass

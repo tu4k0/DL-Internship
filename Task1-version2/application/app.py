@@ -3,8 +3,8 @@ from application.eth_blockchain.eth_blockchain import EthBlockchain
 
 if __name__ == '__main__':
     print('Service for manual node connection to Blockchain networks (BTC/ETH)')
-    blockchainName = input('Enter Blockchain name: ')
-    if blockchainName == 'BTC':
+    blockchain_name = input('Enter Blockchain name: ')
+    if blockchain_name == 'BTC':
         BTC = BtcBlockchain()
         print('Socket info: ', BTC.set_socket())
         print('Peer node adress info: ', BTC.get_nodes_address())
@@ -40,5 +40,5 @@ if __name__ == '__main__':
             BTC.print_response('ping', ping_request, ping_response)
         else:
             exit()
-    elif blockchainName == 'ETH':
+    elif blockchain_name == 'ETH':
         ETH = EthBlockchain()

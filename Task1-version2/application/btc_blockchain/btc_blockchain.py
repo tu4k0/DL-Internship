@@ -24,26 +24,26 @@ class BtcBlockchain(BaseBlockchain):
     def __init__(self):
         super().__init__()
 
-    def set_socket(self):
+    def set_socket(self) -> socket.socket:
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         if str(self.socket.type) == 'SocketKind.SOCK_STREAM':
             return self.socket
         else:
             return 0
 
-    def get_ip(self):
+    def get_ip(self) -> str:
         ip = requests.get('https://checkip.amazonaws.com').text.strip()
         return ip
 
-    def set_node(self):
+    def set_node(self) -> None:
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.socket.bind(('', 8333))
 
-    def get_connections(self, node_number):
+    def get_connections(self, node_number) -> tuple:
         self.socket.listen(node_number)
         while True:
-            user, addr = self.socket.accept()
-            return user, addr
+            peer = self.socket.accept()
+            return peer
 
     def get_nodes_address(self) -> list:
         found_peers = []
@@ -60,7 +60,7 @@ class BtcBlockchain(BaseBlockchain):
         except Exception:
             return found_peers
 
-    def connect_node(self, node, port):
+    def connect_node(self, node, port) -> str:
         try:
             print("Trying to connect to BTC node: ", node)
             self.socket.connect((node, port))
@@ -68,17 +68,17 @@ class BtcBlockchain(BaseBlockchain):
         except Exception:
             raise Exception('Node Url invalid')
 
-    def disconnect_node(self):
+    def disconnect_node(self) -> None:
         return self.socket.close()
 
-    def create_message(self, command, payload):
+    def create_message(self, command, payload) -> bytes:
         magic = bytes.fromhex('F9BEB4D9')
         command = bytes(command, 'utf-8') + (12 - len(command)) * b"\00"
         length = struct.pack("I", len(payload))
         checksum = hashlib.sha256(hashlib.sha256(payload).digest()).digest()[:4]
         return magic + command + length + checksum + payload
 
-    def create_version_message(self, node):
+    def create_version_message(self, node) -> bytes:
         version = struct.pack("i", 70015)
         services = struct.pack("Q", 0)
         timestamp = struct.pack("q", int(time.time()))
@@ -98,17 +98,17 @@ class BtcBlockchain(BaseBlockchain):
         payload = version + services + timestamp + add_recv + add_from + nonce + user_agent + height
         return payload
 
-    def create_verack_message(self):
+    def create_verack_message(self) -> bytearray:
         return bytearray.fromhex("f9beb4d976657261636b000000000000000000005df6e0e2")
 
-    def create_tx_getdata_message(self, block_hash):
+    def create_tx_getdata_message(self, block_hash) -> bytes:
         count = 1
         type = 1
         hash = bytearray.fromhex(block_hash)
         payload = struct.pack('<bb32s', count, type, hash)
         return payload
 
-    def create_getaddr_message(self):
+    def create_getaddr_message(self) -> bytes:
         magic = bytes.fromhex("F9BEB4D9")
         command = b"getaddr" + 5 * b"\00"
         payload = b""
@@ -116,12 +116,12 @@ class BtcBlockchain(BaseBlockchain):
         checksum = hashlib.sha256(hashlib.sha256(payload).digest()).digest()[:4]
         return magic + command + length + checksum + payload
 
-    def create_ping_message(self):
+    def create_ping_message(self) -> bytes:
         nonce = random.randint(1, 1 ** 32)
         payload = struct.pack('<Q', nonce)
         return payload
 
-    def create_getheaders_message(self):
+    def create_getheaders_message(self) -> bytes:
         version = struct.pack("i", 70015)
         hash_count = struct.pack("i", 1)
         block_header_hashes = struct.pack('s', bytearray.fromhex(
@@ -130,13 +130,13 @@ class BtcBlockchain(BaseBlockchain):
         payload = version + hash_count + block_header_hashes + stop_hash
         return payload
 
-    def send_message(self, message):
+    def send_message(self, message) -> int:
         return self.socket.send(message)
 
-    def receive_message(self):
+    def receive_message(self) -> bytes:
         return self.socket.recv(1024)
 
-    def decode_message(self, message):
+    def decode_message(self, message) -> tuple:
         message_magic = message[:4]
         message_command = message[4:16]
         message_length = struct.unpack("I", message[16:20])
@@ -144,7 +144,7 @@ class BtcBlockchain(BaseBlockchain):
         message_payload = message[24:]
         return message_magic, message_command, message_length, message_checksum, message_payload
 
-    def print_response(self, command, request_data, response_data):
+    def print_response(self, command, request_data, response_data) -> None:
         print("")
         print(f"Message: {command}")
         print("Program Request:")
