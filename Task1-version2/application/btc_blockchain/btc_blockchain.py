@@ -12,17 +12,11 @@ class BtcBlockchain(BaseBlockchain):
     node: str
     PORT: int
     socket: socket
-    dns_seeds: list = [
-        ("seed.bitcoin.sipa.be", 8333),
-        ("dnsseed.bluematt.me", 8333),
-        ("dnsseed.bitcoin.dashjr.org", 8333),
-        ("seed.bitcoinstats.com", 8333),
-        ("seed.bitnodes.io", 8333),
-        ("bitseed.xf2.org", 8333),
-    ]
+    dns_seeds: list
 
-    def __init__(self):
+    def __init__(self, dns_seeds):
         super().__init__()
+        self.dns_seeds = dns_seeds
 
     def set_socket(self) -> socket.socket:
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -35,7 +29,7 @@ class BtcBlockchain(BaseBlockchain):
         ip = requests.get('https://checkip.amazonaws.com').text.strip()
         return ip
 
-    def set_node(self) -> None:
+    def set_node(self):
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.socket.bind(('', 8333))
 
@@ -68,7 +62,7 @@ class BtcBlockchain(BaseBlockchain):
         except Exception:
             raise Exception('Node Url invalid')
 
-    def disconnect_node(self) -> None:
+    def disconnect_node(self):
         return self.socket.close()
 
     def create_message(self, command, payload) -> bytes:
