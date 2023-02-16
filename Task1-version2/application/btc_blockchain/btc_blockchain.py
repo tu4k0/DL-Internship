@@ -1,33 +1,11 @@
-import binascii
 import hashlib
 import random
 import socket
 import struct
 import time
 import requests
-from abc import abstractmethod, ABC
 
-import re
-
-
-class BaseBlockchain(ABC):
-
-    @abstractmethod
-    def __init__(self):
-        pass
-
-    @abstractmethod
-    def getData(self, tx_id):
-        pass
-
-
-class EthBlockchain(BaseBlockchain):
-
-    def __init__(self):
-        super().__init__()
-
-    def getInfo(self):
-        pass
+from application.base_blockchain.base_blockchain import BaseBlockchain
 
 
 class BtcBlockchain(BaseBlockchain):
@@ -91,7 +69,7 @@ class BtcBlockchain(BaseBlockchain):
             raise Exception('Node Url invalid')
 
     def createVersionMessage(self, node):
-        version = struct.pack("i", 70016)
+        version = struct.pack("i", 70015)
         services = struct.pack("Q", 0)
         timestamp = struct.pack("q", int(time.time()))
 
@@ -114,7 +92,7 @@ class BtcBlockchain(BaseBlockchain):
     def createVerackMessage(self):
         return bytearray.fromhex("f9beb4d976657261636b000000000000000000005df6e0e2")
 
-    def encodeReceivedMessage(self, recv_message):
+    def encodeMessage(self, recv_message):
         recv_magic = recv_message[:4].hex()
         recv_command = recv_message[4:16]
         recv_length = struct.unpack("I", recv_message[16:20])
@@ -160,54 +138,10 @@ class BtcBlockchain(BaseBlockchain):
     def closeConnection(self):
         return self.socket.close()
 
-
-if __name__ == '__main__':
-    print('Service for manual node connection to Blockchain networks (BTC/ETH)')
-    blockchainName = 'BTC'
-    if blockchainName == 'BTC':
-        BTC = BtcBlockchain()
-        print(BTC.setSocket())
-        print('BTC socket info: ', BTC.socket)
-        print(BTC.getNodeAddresses())
-        node = input('Enter node URL: ')
-        port = input('Enter port: ')
-        connection = BTC.connectNode(node=node, port=int(port))
-        if connection:
-            print('Connection status: True')
-        print('Version message: ')
-        request = BTC.makeMessage("version", BTC.createVersionMessage(node))
-        print('Request:', request)
-        BTC.socket.send(request)
-        response = BTC.encodeReceivedMessage(BTC.socket.recv(1024))[1]
-        print('Response: ', response)
-        print('Verack message: ')
-        verack_response = BTC.socket.recv(1024)
-        print('Response: ', verack_response)
-        verack_request = BTC.makeMessage("verack", BTC.createVerackMessage())
-        BTC.socket.send(verack_request)
-        print('Request: ', verack_request)
-        print('GetHeadersBlocks: ')
-        block_request = BTC.makeMessage("getheaders", BTC.createGetHeadersMessage())
-        BTC.socket.send(block_request)
-        print('Request: ', block_request)
-        block_response = BTC.socket.recv(1024)
-        print('Response: ', block_response)
-        print('GetData: ')
-        data = BTC.getData('1dbd981fe6985776b644b173a4d0385ddc1aa2a829688d1e0000000000000000')
-        getdata_message = BTC.makeMessage('getdata', data)
-        sendy = BTC.socket.send(getdata_message)
-        rec = BTC.socket.recv(1024)
-        print(getdata_message)
-        print(rec)
-        print('GetAddr: ')
-        getAddr_request = BTC.createGetAddrMessage()
-        BTC.socket.send(getAddr_request)
-        print('Request: ', getAddr_request)
-        getAddr_response = BTC.socket.recv(1024)
-        print('Response: ', getAddr_response)
-        print('Ping message: ')
-        ping_request = BTC.makeMessage("ping", BTC.createPingMessage())
-        BTC.socket.send(ping_request)
-        print('Request: ', ping_request)
-        ping_response = BTC.socket.recv(1024)
-        print('Response: ', ping_response)
+    def printResponse(self, command, request_data, response_data):
+        print("")
+        print(f"Message: {command}")
+        print("Program Request:")
+        print(BtcBlockchain.encodeReceivedMessage(request_data))
+        print("Node response:")
+        print(BtcBlockchain.encodeReceivedMessage(response_data))
