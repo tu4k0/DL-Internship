@@ -8,5 +8,5 @@ class BaseBlockchain(ABC):
         pass
 
     @abstractmethod
-    def getData(self, tx_id):
+    def create_tx_getdata_message(self, tx_id):
         pass

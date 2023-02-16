@@ -12,7 +12,7 @@ class BtcBlockchain(BaseBlockchain):
     node: str
     PORT: int
     socket: socket
-    dns_seeds = [
+    dns_seeds: list = [
         ("seed.bitcoin.sipa.be", 8333),
         ("dnsseed.bluematt.me", 8333),
         ("dnsseed.bitcoin.dashjr.org", 8333),
@@ -96,7 +96,6 @@ class BtcBlockchain(BaseBlockchain):
         height = struct.pack("i", 0)
 
         payload = version + services + timestamp + add_recv + add_from + nonce + user_agent + height
-
         return payload
 
     def create_verack_message(self):
@@ -125,13 +124,20 @@ class BtcBlockchain(BaseBlockchain):
     def create_getheaders_message(self):
         version = struct.pack("i", 70015)
         hash_count = struct.pack("i", 1)
-        block_header_hashes = struct.pack('s', bytearray.fromhex("8C2ACBC70D503FDC36787AC0EE0916D4C504DD1624AA05000000000000000000"))
+        block_header_hashes = struct.pack('s', bytearray.fromhex(
+            "8C2ACBC70D503FDC36787AC0EE0916D4C504DD1624AA05000000000000000000"))
         stop_hash = b"0"
         payload = version + hash_count + block_header_hashes + stop_hash
         return payload
 
+    def send_message(self, message):
+        return self.socket.send(message)
+
+    def receive_message(self):
+        return self.socket.recv(1024)
+
     def decode_message(self, message):
-        message_magic = message[:4].hex()
+        message_magic = message[:4]
         message_command = message[4:16]
         message_length = struct.unpack("I", message[16:20])
         message_checksum = message[20:24]
