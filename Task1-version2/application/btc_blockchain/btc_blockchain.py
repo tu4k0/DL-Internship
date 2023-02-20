@@ -10,13 +10,14 @@ from application.base_blockchain.base_blockchain import BaseBlockchain
 
 class BtcBlockchain(BaseBlockchain):
     node: str
-    PORT: int
+    port: int
     socket: socket
     dns_seeds: list
 
-    def __init__(self, dns_seeds):
+    def __init__(self, host, port):
         super().__init__()
-        self.dns_seeds = dns_seeds
+        self.host = host
+        self.port = port
 
     def set_socket(self) -> socket.socket:
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
