@@ -6,6 +6,7 @@ import time
 import requests
 
 from application.base_blockchain.base_blockchain import BaseBlockchain
+from application.btc_blockchain.btc_config import *
 
 
 class BtcBlockchain(BaseBlockchain):
@@ -14,9 +15,9 @@ class BtcBlockchain(BaseBlockchain):
     socket: socket
     dns_seeds: list
 
-    def __init__(self, host, port):
+    def __init__(self, node, port):
         super().__init__()
-        self.host = host
+        self.node = node
         self.port = port
 
     def set_socket(self) -> socket.socket:
@@ -27,7 +28,7 @@ class BtcBlockchain(BaseBlockchain):
             return 0
 
     def get_ip(self) -> str:
-        ip = requests.get('https://checkip.amazonaws.com').text.strip()
+        ip = requests.get(ip_link).text.strip()
         return ip
 
     def set_node(self):
@@ -43,7 +44,7 @@ class BtcBlockchain(BaseBlockchain):
     def get_nodes_address(self) -> list:
         found_peers = []
         try:
-            for (ip_address, port) in self.dns_seeds:
+            for (ip_address, port) in dns_seeds:
                 for info in socket.getaddrinfo(
                         ip_address,
                         port,
@@ -67,14 +68,14 @@ class BtcBlockchain(BaseBlockchain):
         return self.socket.close()
 
     def create_message(self, command, payload) -> bytes:
-        magic = bytes.fromhex('F9BEB4D9')
+        magic = bytes.fromhex(btc_magic)
         command = bytes(command, 'utf-8') + (12 - len(command)) * b"\00"
         length = struct.pack("I", len(payload))
         checksum = hashlib.sha256(hashlib.sha256(payload).digest()).digest()[:4]
         return magic + command + length + checksum + payload
 
     def create_version_message(self, node) -> bytes:
-        version = struct.pack("i", 70015)
+        version = struct.pack("i", btc_version)
         services = struct.pack("Q", 0)
         timestamp = struct.pack("q", int(time.time()))
 
@@ -83,7 +84,7 @@ class BtcBlockchain(BaseBlockchain):
         add_recv += struct.pack(">H", 8333)
 
         add_from = struct.pack("Q", 0)
-        add_from += struct.pack(">16s", bytes("192.168.0.100", 'utf-8'))
+        add_from += struct.pack(">16s", bytes(host, 'utf-8'))
         add_from += struct.pack(">H", 8333)
 
         nonce = struct.pack("Q", random.getrandbits(64))
@@ -94,7 +95,7 @@ class BtcBlockchain(BaseBlockchain):
         return payload
 
     def create_verack_message(self) -> bytearray:
-        return bytearray.fromhex("f9beb4d976657261636b000000000000000000005df6e0e2")
+        return bytearray.fromhex(verack_message)
 
     def create_tx_getdata_message(self, block_hash) -> bytes:
         count = 1
@@ -104,7 +105,7 @@ class BtcBlockchain(BaseBlockchain):
         return payload
 
     def create_getaddr_message(self) -> bytes:
-        magic = bytes.fromhex("F9BEB4D9")
+        magic = bytes.fromhex(btc_magic)
         command = b"getaddr" + 5 * b"\00"
         payload = b""
         length = struct.pack("I", len(payload))
@@ -117,10 +118,9 @@ class BtcBlockchain(BaseBlockchain):
         return payload
 
     def create_getheaders_message(self) -> bytes:
-        version = struct.pack("i", 70015)
+        version = struct.pack("i", btc_version)
         hash_count = struct.pack("i", 1)
-        block_header_hashes = struct.pack('s', bytearray.fromhex(
-            "8C2ACBC70D503FDC36787AC0EE0916D4C504DD1624AA05000000000000000000"))
+        block_header_hashes = struct.pack('s', bytearray.fromhex(block_header_hash))
         stop_hash = b"0"
         payload = version + hash_count + block_header_hashes + stop_hash
         return payload
