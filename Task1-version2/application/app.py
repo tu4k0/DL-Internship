@@ -5,18 +5,11 @@ if __name__ == '__main__':
     print('Service for manual node connection to Blockchain networks (BTC/ETH)')
     blockchain_name = input('Enter Blockchain name: ')
     if blockchain_name == 'BTC':
-        BTC = BtcBlockchain(dns_seeds=[
-            ("seed.bitcoin.sipa.be", 8333),
-            ("dnsseed.bluematt.me", 8333),
-            ("dnsseed.bitcoin.dashjr.org", 8333),
-            ("seed.bitcoinstats.com", 8333),
-            ("seed.bitnodes.io", 8333),
-            ("bitseed.xf2.org", 8333),
-        ])
-        print('Socket info: ', BTC.set_socket())
-        print('Peer node adress info: ', BTC.get_nodes_address())
         node = input('Enter node URL: ')
         port = input('Enter port: ')
+        BTC = BtcBlockchain(node, port)
+        print('Socket info: ', BTC.set_socket())
+        print('Peer nodes address info: ', BTC.get_nodes_address())
         connection = BTC.connect_node(node=node, port=int(port))
         if connection:
             print('Connection status: True')
