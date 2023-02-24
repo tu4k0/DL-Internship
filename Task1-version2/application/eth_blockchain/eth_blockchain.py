@@ -12,6 +12,8 @@ from application.base_blockchain.base_blockchain import BaseBlockchain
 
 class EthBlockchain(BaseBlockchain):
     socket: socket
+    node: str
+    port: int
 
     def __init__(self, node, port):
         super().__init__()
@@ -39,11 +41,11 @@ class EthBlockchain(BaseBlockchain):
             peer = self.socket.accept()
             return peer
 
-    def connect_node(self, node, port) -> str:
+    def connect_node(self) -> str:
         try:
-            print("Trying to connect to ETH node: ", node)
-            self.socket.connect((node, port))
-            return node
+            print("Trying to connect to ETH node: ", self.node)
+            self.socket.connect((self.node, self.port))
+            return self.node
         except Exception:
             raise Exception('Node Url invalid')
 
@@ -76,8 +78,12 @@ class EthBlockchain(BaseBlockchain):
 if __name__ == '__main__':
     ETH = EthBlockchain('174.1.90.30', 30303)
     ETH.set_socket()
-    ETH.connect_node('174.1.90.30', 30303)
+    connection = ETH.connect_node()
+    print('Connection: Node IP: ', connection)
+    print('Sending Hello message request to node')
     hello_msg = ETH.create_hello_message()
     ETH.socket.sendall(hello_msg)
+    print(hello_msg)
+    print('Receiving response from node')
     result = ETH.receive_message()
     print(result)
