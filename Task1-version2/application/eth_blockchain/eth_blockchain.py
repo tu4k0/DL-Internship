@@ -4,6 +4,8 @@ import socket
 import struct
 import time
 import requests
+import rlp
+from rlp.sedes import List, CountableList, binary, big_endian_int
 
 from application.base_blockchain.base_blockchain import BaseBlockchain
 
@@ -29,7 +31,7 @@ class EthBlockchain(BaseBlockchain):
 
     def set_node(self):
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.socket.bind(('', 8546))
+        self.socket.bind(('', 30303))
 
     def get_connections(self, node_number) -> tuple:
         self.socket.listen(node_number)
@@ -39,7 +41,7 @@ class EthBlockchain(BaseBlockchain):
 
     def connect_node(self, node, port) -> str:
         try:
-            print("Trying to connect to BTC node: ", node)
+            print("Trying to connect to ETH node: ", node)
             self.socket.connect((node, port))
             return node
         except Exception:
@@ -51,7 +53,16 @@ class EthBlockchain(BaseBlockchain):
     def create_tx_getdata_message(self, tx_id) -> bytes:
         pass
 
-    def get_block_number(self):
+    def create_hello_message(self):
+        protocol_version = rlp.encode(66)
+        client_id = rlp.encode(b"client")
+        port = rlp.encode(30303)
+        node_id = rlp.encode(b"b463a06c9cb44b6c5be042c931707374c9be887d91c65543aebed8d32298144b95c116b0be98a326cdef75b38726378c9fe714d2ed33e5a36c7c79ce96ca8426")
+        capabilities = rlp.encode(b"eth/66")
+        message = protocol_version + client_id + port + node_id + capabilities
+        return message
+
+    def create_getblocknumber_message(self):
         data = '{"jsonrpc":"2.0","method":"eth_blockNumber","params":[],"id":1}'
         return data.encode()
 
@@ -63,9 +74,10 @@ class EthBlockchain(BaseBlockchain):
 
 
 if __name__ == '__main__':
-    ETH = EthBlockchain('136.243.110.222', 30033)
+    ETH = EthBlockchain('174.1.90.30', 30303)
     ETH.set_socket()
-    ETH.connect_node('136.243.110.222', 30033)
-    ETH.send_message(ETH.get_block_number())
+    ETH.connect_node('174.1.90.30', 30303)
+    hello_msg = ETH.create_hello_message()
+    ETH.socket.sendall(hello_msg)
     result = ETH.receive_message()
     print(result)
