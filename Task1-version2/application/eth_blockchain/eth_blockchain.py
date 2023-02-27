@@ -55,6 +55,21 @@ class EthBlockchain(BaseBlockchain):
     def create_tx_getdata_message(self, tx_id) -> bytes:
         pass
 
+    def create_status_message(self):
+        msg_type = 0x00
+        protocol_version = 66
+        network_id = 1
+        td = 58750003716598360000000
+        blockhash = bytes.fromhex('c68967de7c192d63fb1387ea15a77294e5c832b394a95cd24bddb48fb96d620f')
+        genesis = bytes.fromhex('d4e56740f876aef8c010b86a40d5f56745a118d0906a34e69aec8c0db1cb8fa3')
+        fork_hash = bytes.fromhex('97c2c34c')
+        fork_next = 10
+        fork_id = [fork_hash, fork_next]
+        status_payload = rlp.encode([protocol_version, network_id, td, blockhash, genesis, fork_id])
+        header = msg_type.to_bytes(1, byteorder='big') + len(status_payload).to_bytes(3, byteorder='big')
+        message = header + status_payload
+        return message
+
     def create_hello_message(self):
         protocol_version = rlp.encode(66)
         client_id = rlp.encode(b"client")
@@ -76,14 +91,21 @@ class EthBlockchain(BaseBlockchain):
 
 
 if __name__ == '__main__':
-    ETH = EthBlockchain('174.1.90.30', 30303)
+    ETH = EthBlockchain('3.70.129.24', 30303)
     ETH.set_socket()
     connection = ETH.connect_node()
     print('Connection: Node IP: ', connection)
+    print('Sending Status message request to node')
+    status_msg = ETH.create_status_message()
+    ETH.socket.sendall(status_msg)
+    print(status_msg)
+    print('Receiving response from node')
+    result = ETH.receive_message()
+    print(result)
     print('Sending Hello message request to node')
     hello_msg = ETH.create_hello_message()
     ETH.socket.sendall(hello_msg)
     print(hello_msg)
     print('Receiving response from node')
-    result = ETH.receive_message()
-    print(result)
+    response = ETH.receive_message()
+    print(response)
