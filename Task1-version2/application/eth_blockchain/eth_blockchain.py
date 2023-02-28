@@ -22,10 +22,7 @@ class EthBlockchain(BaseBlockchain):
 
     def set_socket(self) -> socket.socket:
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        if str(self.socket.type) == 'SocketKind.SOCK_STREAM':
-            return self.socket
-        else:
-            return 0
+        return self.socket
 
     def get_ip(self) -> str:
         ip = requests.get('https://checkip.amazonaws.com').text.strip()
@@ -71,13 +68,13 @@ class EthBlockchain(BaseBlockchain):
         return message
 
     def create_hello_message(self):
-        protocol_version = rlp.encode(66)
-        client_id = rlp.encode(b"client")
-        port = rlp.encode(30303)
-        node_id = rlp.encode(b"b463a06c9cb44b6c5be042c931707374c9be887d91c65543aebed8d32298144b95c116b0be98a326cdef75b38726378c9fe714d2ed33e5a36c7c79ce96ca8426")
-        capabilities = rlp.encode(b"eth/66")
-        message = protocol_version + client_id + port + node_id + capabilities
-        return message
+        protocol_version = 5
+        client_id = 'geth/v1.10.25-stable/linux-amd64/go1.19'
+        listen_port = 30303
+        node_id = '003b78a323c5c0d348b7ab4411ee72faa3733cf0e9c0b339719f8f94fcd81cdacdca2f89520392b4c86b561b738bf10b76d28db1dae070be035bb6c1c7e43e14'
+        capabilities = [['eth', 66]]
+        hello_message = rlp.encode([protocol_version, client_id, capabilities, listen_port, node_id])
+        return hello_message
 
     def create_getblocknumber_message(self):
         data = '{"jsonrpc":"2.0","method":"eth_blockNumber","params":[],"id":1}'
@@ -91,10 +88,17 @@ class EthBlockchain(BaseBlockchain):
 
 
 if __name__ == '__main__':
-    ETH = EthBlockchain('3.70.129.24', 30303)
+    ETH = EthBlockchain('89.116.26.40', 30303)
     ETH.set_socket()
     connection = ETH.connect_node()
     print('Connection: Node IP: ', connection)
+    print('Sending Hello message request to node')
+    hello_msg = ETH.create_hello_message()
+    ETH.socket.send(hello_msg)
+    print(hello_msg)
+    print('Receiving response from node')
+    response = ETH.receive_message()
+    print(response)
     print('Sending Status message request to node')
     status_msg = ETH.create_status_message()
     ETH.socket.sendall(status_msg)
@@ -102,10 +106,4 @@ if __name__ == '__main__':
     print('Receiving response from node')
     result = ETH.receive_message()
     print(result)
-    print('Sending Hello message request to node')
-    hello_msg = ETH.create_hello_message()
-    ETH.socket.sendall(hello_msg)
-    print(hello_msg)
-    print('Receiving response from node')
-    response = ETH.receive_message()
-    print(response)
+
