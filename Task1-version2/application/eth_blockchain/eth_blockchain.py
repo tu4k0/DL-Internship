@@ -76,6 +76,15 @@ class EthBlockchain(BaseBlockchain):
         hello_message = rlp.encode([protocol_version, client_id, capabilities, listen_port, node_id])
         return hello_message
 
+    def create_ping_message(self):
+        msg_type = 0x01
+        version = 4
+        expiration = int(time.time())
+        from_ = ['192.168.0.100', 30303, 30303]
+        to = ['89.116.26.40', 30303, 0]
+        ping_message = rlp.encode([msg_type, version, from_, to, expiration])
+        return ping_message
+
     def create_getblocknumber_message(self):
         data = '{"jsonrpc":"2.0","method":"eth_blockNumber","params":[],"id":1}'
         return data.encode()
@@ -92,18 +101,25 @@ if __name__ == '__main__':
     ETH.set_socket()
     connection = ETH.connect_node()
     print('Connection: Node IP: ', connection)
+    print('Sending Ping message request to node')
+    ping_msg = ETH.create_ping_message()
+    ETH.socket.send(ping_msg)
+    print(ping_msg)
+    print('Receiving response from node')
+    ping_response = ETH.receive_message()
+    print(ping_response)
     print('Sending Hello message request to node')
     hello_msg = ETH.create_hello_message()
     ETH.socket.send(hello_msg)
     print(hello_msg)
     print('Receiving response from node')
-    response = ETH.receive_message()
-    print(response)
+    hello_response = ETH.receive_message()
+    print(hello_response)
     print('Sending Status message request to node')
     status_msg = ETH.create_status_message()
     ETH.socket.sendall(status_msg)
     print(status_msg)
     print('Receiving response from node')
-    result = ETH.receive_message()
-    print(result)
+    status_response = ETH.receive_message()
+    print(status_response)
 
