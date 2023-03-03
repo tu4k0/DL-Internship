@@ -100,6 +100,16 @@ class EthBlockchain(BaseBlockchain):
         }
         return getblock_number_message
 
+    def create_ping_message(self):
+        method = 'eth_syncing'
+        ping_message = {
+            'json': '2.0',
+            'id': '0',
+            'method': method,
+            'params': []
+        }
+        return ping_message
+
     def encode_message(self, message):
         return message.encode('utf-8')
 
@@ -117,13 +127,20 @@ if __name__ == '__main__':
     ETH = EthBlockchain(node, port)
     print('Socket info: ', ETH.set_socket())
     connection = ETH.connect_node()
-    print("Get block tx number message")
-    message3 = ETH.make_message(node, ETH.create_getblock_tx_number_message(1))
-    request = ETH.encode_message(message3)
+    print("Ping message")
+    message4 = ETH.make_message(node, ETH.create_ping_message())
+    request = ETH.encode_message(message4)
     ETH.send_message(request)
     print(f'Request:\n{request}')
     response = ETH.receive_message().decode('utf-8')
     print(f'Response:\n{response}')
+    # print("Get block tx number message")
+    # message3 = ETH.make_message(node, ETH.create_getblock_tx_number_message(1))
+    # request = ETH.encode_message(message3)
+    # ETH.send_message(request)
+    # print(f'Request:\n{request}')
+    # response = ETH.receive_message().decode('utf-8')
+    # print(f'Response:\n{response}')
     # print("Get block message")
     # message2 = ETH.make_message(node, ETH.create_getblock_message(100))
     # request = ETH.encode_message(message2)
