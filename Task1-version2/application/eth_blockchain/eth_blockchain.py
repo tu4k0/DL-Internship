@@ -109,6 +109,16 @@ class EthBlockchain(BaseBlockchain):
         }
         return getnetwork_message
 
+    def create_mining_message(self):
+        method = 'eth_mining'
+        mining_message = {
+            "jsonrpc": "2.0",
+            "id": '0',
+            "method": method,
+            "params": [],
+        }
+        return mining_message
+
     def create_ping_message(self):
         method = 'eth_syncing'
         ping_message = {
@@ -136,13 +146,20 @@ if __name__ == '__main__':
     ETH = EthBlockchain(node, port)
     print('Socket info: ', ETH.set_socket())
     connection = ETH.connect_node()
-    print("Get network message")
-    message5 = ETH.make_message(node, ETH.create_getnetwork_message())
-    request = ETH.encode_message(message5)
+    print("Get mining status message")
+    message6 = ETH.make_message(node, ETH.create_mining_message())
+    request = ETH.encode_message(message6)
     ETH.send_message(request)
     print(f'Request:\n{request}')
     response = ETH.receive_message().decode('utf-8')
     print(f'Response:\n{response}')
+    # print("Get network message")
+    # message5 = ETH.make_message(node, ETH.create_getnetwork_message())
+    # request = ETH.encode_message(message5)
+    # ETH.send_message(request)
+    # print(f'Request:\n{request}')
+    # response = ETH.receive_message().decode('utf-8')
+    # print(f'Response:\n{response}')
     # message4 = ETH.make_message(node, ETH.create_ping_message())
     # request = ETH.encode_message(message4)
     # ETH.send_message(request)
