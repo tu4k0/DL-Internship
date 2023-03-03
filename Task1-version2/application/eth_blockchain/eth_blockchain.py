@@ -70,15 +70,25 @@ class EthBlockchain(BaseBlockchain):
         return tx_getdata_message
 
     def create_getblock_message(self, block_number) -> bytes:
-        method = 'eth_getTransactionByHash'
+        method = 'eth_getBlockByHash'
         getblock_message = {
             'json': '2.0',
             'id': '0',
             'method': method,
             'params': [
-                hex(block_number), True]
+                hex(int(block_number)), True]
         }
         return getblock_message
+
+    def create_getblocknumber_message(self):
+        method = 'eth_blockNumber'
+        getblocknumber_message = {
+            'json': '2.0',
+            'id': '0',
+            'method': method,
+            'params': []
+        }
+        return getblocknumber_message
 
     def encode_message(self, message):
         return message.encode('utf-8')
@@ -98,9 +108,17 @@ if __name__ == '__main__':
     print('Socket info: ', ETH.set_socket())
     connection = ETH.connect_node()
     print("Get tx data message")
-    message2 = ETH.make_message(node, ETH.create_tx_getdata_message('0xb5c8bd9430b6cc87a0e2fe110ece6bf527fa4f170a4bc8cd032f768fc5219838'))
+    message2 = ETH.make_message(node, ETH.create_getblock_message(
+        '1222'))
     request = ETH.encode_message(message2)
     ETH.send_message(request)
     print(f'Request:\n{request}')
     response = ETH.receive_message().decode('utf-8')
     print(f'Response:\n{response}')
+    # print("Get tx data message")
+    # message2 = ETH.make_message(node, ETH.create_tx_getdata_message('0xb5c8bd9430b6cc87a0e2fe110ece6bf527fa4f170a4bc8cd032f768fc5219838'))
+    # request = ETH.encode_message(message2)
+    # ETH.send_message(request)
+    # print(f'Request:\n{request}')
+    # response = ETH.receive_message().decode('utf-8')
+    # print(f'Response:\n{response}')
