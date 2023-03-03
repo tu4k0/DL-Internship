@@ -119,6 +119,16 @@ class EthBlockchain(BaseBlockchain):
         }
         return mining_message
 
+    def create_getbadblocks_message(self):
+        method = 'debug_getBadBlocks'
+        debug_message = {
+            "jsonrpc": "2.0",
+            "id": '0',
+            "method": method,
+            "params": [],
+        }
+        return debug_message
+
     def create_ping_message(self):
         method = 'eth_syncing'
         ping_message = {
@@ -147,7 +157,7 @@ if __name__ == '__main__':
     print('Socket info: ', ETH.set_socket())
     connection = ETH.connect_node()
     print("Get mining status message")
-    message6 = ETH.make_message(node, ETH.create_mining_message())
+    message6 = ETH.make_message(node, ETH.create_getbadblocks_message())
     request = ETH.encode_message(message6)
     ETH.send_message(request)
     print(f'Request:\n{request}')
