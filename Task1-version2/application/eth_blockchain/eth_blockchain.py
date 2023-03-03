@@ -75,8 +75,7 @@ class EthBlockchain(BaseBlockchain):
             'json': '2.0',
             'id': '0',
             'method': method,
-            'params': [
-                hex(int(block_number)), True]
+            'params': [hex(int(block_number)), True]
         }
         return getblock_message
 
@@ -99,6 +98,16 @@ class EthBlockchain(BaseBlockchain):
             'params': []
         }
         return getblock_number_message
+
+    def create_getnetwork_message(self):
+        method = 'eth_chainId'
+        getnetwork_message = {
+            "jsonrpc": "2.0",
+            "id": '0',
+            "method": method,
+            "params": [],
+        }
+        return getnetwork_message
 
     def create_ping_message(self):
         method = 'eth_syncing'
@@ -127,13 +136,19 @@ if __name__ == '__main__':
     ETH = EthBlockchain(node, port)
     print('Socket info: ', ETH.set_socket())
     connection = ETH.connect_node()
-    print("Ping message")
-    message4 = ETH.make_message(node, ETH.create_ping_message())
-    request = ETH.encode_message(message4)
+    print("Get network message")
+    message5 = ETH.make_message(node, ETH.create_getnetwork_message())
+    request = ETH.encode_message(message5)
     ETH.send_message(request)
     print(f'Request:\n{request}')
     response = ETH.receive_message().decode('utf-8')
     print(f'Response:\n{response}')
+    # message4 = ETH.make_message(node, ETH.create_ping_message())
+    # request = ETH.encode_message(message4)
+    # ETH.send_message(request)
+    # print(f'Request:\n{request}')
+    # response = ETH.receive_message().decode('utf-8')
+    # print(f'Response:\n{response}')
     # print("Get block tx number message")
     # message3 = ETH.make_message(node, ETH.create_getblock_tx_number_message(1))
     # request = ETH.encode_message(message3)
