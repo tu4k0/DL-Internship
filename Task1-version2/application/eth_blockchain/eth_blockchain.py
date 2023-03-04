@@ -71,43 +71,43 @@ class EthBlockchain(BaseBlockchain):
 
     def create_getblock_message(self, block_number) -> bytes:
         method = 'eth_getBlockByNumber'
-        getblock_message = {
+        block_message = {
             'json': '2.0',
             'id': '0',
             'method': method,
             'params': [hex(int(block_number)), True]
         }
-        return getblock_message
+        return block_message
 
     def create_getblock_tx_number_message(self, block_number):
         method = 'eth_getBlockTransactionCountByNumber'
-        getblock_tx_number_message = {
+        block_tx_number_message = {
             'json': '2.0',
             'id': '0',
             'method': method,
             'params': [hex(int(block_number))]
         }
-        return getblock_tx_number_message
+        return block_tx_number_message
 
     def create_getblock_number_message(self):
         method = 'eth_blockNumber'
-        getblock_number_message = {
+        block_number_message = {
             'json': '2.0',
             'id': '0',
             'method': method,
             'params': []
         }
-        return getblock_number_message
+        return block_number_message
 
     def create_getnetwork_message(self):
         method = 'eth_chainId'
-        getnetwork_message = {
+        network_message = {
             "jsonrpc": "2.0",
             "id": '0',
             "method": method,
             "params": [],
         }
-        return getnetwork_message
+        return network_message
 
     def create_mining_message(self):
         method = 'eth_mining'
@@ -128,6 +128,16 @@ class EthBlockchain(BaseBlockchain):
             "params": [],
         }
         return debug_message
+
+    def create_getgasprice_message(self):
+        method = 'eth_gasPrice'
+        gasprice_message = {
+            "jsonrpc": "2.0",
+            "id": '0',
+            "method": method,
+            "params": [],
+        }
+        return gasprice_message
 
     def create_ping_message(self):
         method = 'eth_syncing'
@@ -156,13 +166,20 @@ if __name__ == '__main__':
     ETH = EthBlockchain(node, port)
     print('Socket info: ', ETH.set_socket())
     connection = ETH.connect_node()
-    print("Get mining status message")
-    message6 = ETH.make_message(node, ETH.create_getbadblocks_message())
-    request = ETH.encode_message(message6)
+    print("Get gasprice status message")
+    message7 = ETH.make_message(node, ETH.create_getgasprice_message())
+    request = ETH.encode_message(message7)
     ETH.send_message(request)
     print(f'Request:\n{request}')
     response = ETH.receive_message().decode('utf-8')
     print(f'Response:\n{response}')
+    # print("Get mining status message")
+    # message6 = ETH.make_message(node, ETH.create_getbadblocks_message())
+    # request = ETH.encode_message(message6)
+    # ETH.send_message(request)
+    # print(f'Request:\n{request}')
+    # response = ETH.receive_message().decode('utf-8')
+    # print(f'Response:\n{response}')
     # print("Get network message")
     # message5 = ETH.make_message(node, ETH.create_getnetwork_message())
     # request = ETH.encode_message(message5)
