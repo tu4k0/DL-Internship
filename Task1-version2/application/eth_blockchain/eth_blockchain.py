@@ -57,7 +57,7 @@ class EthBlockchain(BaseBlockchain):
         content_type = f"Content-Type: application/json\r\n"
         content_length = f"Content-Length: {len(json.dumps(message))}\r\n\r\n{json.dumps(message)}"
         message = request_method + host + content_type + content_length
-        return message
+        return message.encode('utf-8')
 
     def create_tx_getdata_message(self, tx_id) -> bytes:
         method = 'eth_getTransactionByHash'
@@ -152,11 +152,31 @@ class EthBlockchain(BaseBlockchain):
     def encode_message(self, message):
         return message.encode('utf-8')
 
+    def decode_message(self, response):
+        response = response.decode('utf-8')
+        message = {}
+        status = message.update(status=response[9:15])
+        type = message.update(type=response[43:47])
+        time = message.update(time=str(int(response[72:74]) + 2) + response[74:80])
+        length = message.update(length=len(response))
+        body_start = response.find('{')
+        body_end = response.rfind('}')
+        body = message.update(result=json.loads(response[body_start:body_end + 1])['result'])
+        return json.dumps(message, indent=4)
+
+    def print_response(self, command, request_data, response_data) -> None:
+        print("")
+        print(f"Message: {command}")
+        print("Program Request:")
+        print(request_data)
+        print("Node response:")
+        print(response_data)
+
     def send_message(self, message) -> int:
         return self.socket.send(message)
 
     def receive_message(self) -> bytes:
-        return self.socket.recv(1024)
+        return self.socket.recv(4096)
 
 
 if __name__ == '__main__':
@@ -166,13 +186,11 @@ if __name__ == '__main__':
     ETH = EthBlockchain(node, port)
     print('Socket info: ', ETH.set_socket())
     connection = ETH.connect_node()
-    print("Get gasprice status message")
-    message7 = ETH.make_message(node, ETH.create_getgasprice_message())
-    request = ETH.encode_message(message7)
+    request = ETH.make_message(node, ETH.create_getgasprice_message())
     ETH.send_message(request)
-    print(f'Request:\n{request}')
-    response = ETH.receive_message().decode('utf-8')
-    print(f'Response:\n{response}')
+    response = ETH.receive_message()
+    response = ETH.decode_message(response)
+    ETH.print_response('Gas Price', request, response)
     # print("Get mining status message")
     # message6 = ETH.make_message(node, ETH.create_getbadblocks_message())
     # request = ETH.encode_message(message6)
