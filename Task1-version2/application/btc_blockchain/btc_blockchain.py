@@ -56,18 +56,17 @@ class BtcBlockchain(BaseBlockchain):
         except Exception:
             return found_peers
 
-    def connect_node(self, node, port) -> str:
+    def connect_node(self) -> str:
         try:
-            print("Trying to connect to BTC node: ", node)
-            self.socket.connect((node, port))
-            return node
+            self.socket.connect((self.node, self.port))
+            return self.node
         except Exception:
             raise Exception('Node Url invalid')
 
     def disconnect_node(self):
         return self.socket.close()
 
-    def create_message(self, command, payload) -> bytes:
+    def make_message(self, command, payload) -> bytes:
         magic = bytes.fromhex(btc_magic)
         command = bytes(command, 'utf-8') + (12 - len(command)) * b"\00"
         length = struct.pack("I", len(payload))
