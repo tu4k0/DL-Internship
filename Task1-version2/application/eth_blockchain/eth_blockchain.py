@@ -1,5 +1,3 @@
-import hashlib
-import random
 import socket
 import struct
 import time
@@ -7,15 +5,13 @@ import requests
 import rlp
 import json
 
-from rlp.sedes import List, CountableList, binary, big_endian_int
-
 from application.base_blockchain.base_blockchain import BaseBlockchain
 
 
 class EthBlockchain(BaseBlockchain):
-    socket: socket
     node: str
     port: int
+    socket: socket
 
     def __init__(self, node, port):
         super().__init__()
@@ -42,7 +38,6 @@ class EthBlockchain(BaseBlockchain):
 
     def connect_node(self) -> str:
         try:
-            print("Trying to connect to ETH node: ", self.node)
             self.socket.connect((self.node, self.port))
             return self.node
         except Exception:
@@ -149,8 +144,11 @@ class EthBlockchain(BaseBlockchain):
         }
         return ping_message
 
-    def encode_message(self, message):
-        return message.encode('utf-8')
+    def send_message(self, message) -> int:
+        return self.socket.send(message)
+
+    def receive_message(self) -> bytes:
+        return self.socket.recv(4096)
 
     def decode_message(self, response):
         response = response.decode('utf-8')
@@ -171,64 +169,3 @@ class EthBlockchain(BaseBlockchain):
         print(request_data)
         print("Node response:")
         print(response_data)
-
-    def send_message(self, message) -> int:
-        return self.socket.send(message)
-
-    def receive_message(self) -> bytes:
-        return self.socket.recv(4096)
-
-
-if __name__ == '__main__':
-    print('Interface for manual node connection to ETH Blockchain network')
-    node = '89.117.58.225'
-    port = 8545
-    ETH = EthBlockchain(node, port)
-    print('Socket info: ', ETH.set_socket())
-    connection = ETH.connect_node()
-    request = ETH.make_message(node, ETH.create_getgasprice_message())
-    ETH.send_message(request)
-    response = ETH.receive_message()
-    response = ETH.decode_message(response)
-    ETH.print_response('Gas Price', request, response)
-    # print("Get mining status message")
-    # message6 = ETH.make_message(node, ETH.create_getbadblocks_message())
-    # request = ETH.encode_message(message6)
-    # ETH.send_message(request)
-    # print(f'Request:\n{request}')
-    # response = ETH.receive_message().decode('utf-8')
-    # print(f'Response:\n{response}')
-    # print("Get network message")
-    # message5 = ETH.make_message(node, ETH.create_getnetwork_message())
-    # request = ETH.encode_message(message5)
-    # ETH.send_message(request)
-    # print(f'Request:\n{request}')
-    # response = ETH.receive_message().decode('utf-8')
-    # print(f'Response:\n{response}')
-    # message4 = ETH.make_message(node, ETH.create_ping_message())
-    # request = ETH.encode_message(message4)
-    # ETH.send_message(request)
-    # print(f'Request:\n{request}')
-    # response = ETH.receive_message().decode('utf-8')
-    # print(f'Response:\n{response}')
-    # print("Get block tx number message")
-    # message3 = ETH.make_message(node, ETH.create_getblock_tx_number_message(1))
-    # request = ETH.encode_message(message3)
-    # ETH.send_message(request)
-    # print(f'Request:\n{request}')
-    # response = ETH.receive_message().decode('utf-8')
-    # print(f'Response:\n{response}')
-    # print("Get block message")
-    # message2 = ETH.make_message(node, ETH.create_getblock_message(100))
-    # request = ETH.encode_message(message2)
-    # ETH.send_message(request)
-    # print(f'Request:\n{request}')
-    # response = ETH.receive_message().decode('utf-8')
-    # print(f'Response:\n{response}')
-    # print("Get tx data message")
-    # message2 = ETH.make_message(node, ETH.create_tx_getdata_message('0xb5c8bd9430b6cc87a0e2fe110ece6bf527fa4f170a4bc8cd032f768fc5219838'))
-    # request = ETH.encode_message(message2)
-    # ETH.send_message(request)
-    # print(f'Request:\n{request}')
-    # response = ETH.receive_message().decode('utf-8')
-    # print(f'Response:\n{response}')
