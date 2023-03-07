@@ -28,7 +28,7 @@ class EthBlockchain(BaseBlockchain):
 
     def set_node(self):
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.socket.bind(('', 30303))
+        self.socket.bind(('', 8545))
 
     def get_connections(self, node_number) -> tuple:
         self.socket.listen(node_number)
