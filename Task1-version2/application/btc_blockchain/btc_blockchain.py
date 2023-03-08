@@ -10,15 +10,14 @@ from application.btc_blockchain.btc_config import *
 
 
 class BtcBlockchain(BaseBlockchain):
-    node: str
+    ip_address: str
     port: int
     socket: socket
+    node: socket
     dns_seeds: list
 
-    def __init__(self, node, port):
+    def __init__(self):
         super().__init__()
-        self.node = node
-        self.port = port
 
     def set_socket(self) -> socket.socket:
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -32,14 +31,22 @@ class BtcBlockchain(BaseBlockchain):
         return ip
 
     def set_node(self):
-        self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.socket.bind(('', 8333))
+        self.node = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.node.bind(('', 8333))
+        return self.node
 
-    def get_connections(self, node_number) -> tuple:
-        self.socket.listen(node_number)
-        while True:
-            peer = self.socket.accept()
-            return peer
+    def get_connections(self, node_num) -> str:
+        if self.node is None:
+            raise Exception('Node not set yet')
+        else:
+            self.node.listen(node_num)
+            conn, address = self.node.accept()
+            print("Connection from: " + str(address))
+            while True:
+                data = conn.recv(1024).decode()
+                if not data:
+                    break
+                return data
 
     def get_nodes_address(self) -> list:
         found_peers = []
@@ -56,10 +63,12 @@ class BtcBlockchain(BaseBlockchain):
         except Exception:
             return found_peers
 
-    def connect_node(self) -> str:
+    def connect_node(self, ip_address, port) -> str:
         try:
-            self.socket.connect((self.node, self.port))
-            return self.node
+            self.ip_address = ip_address
+            self.port = int(port)
+            self.socket.connect((self.ip_address, int(self.port)))
+            return self.ip_address
         except Exception:
             raise Exception('Node Url invalid')
 
@@ -96,7 +105,7 @@ class BtcBlockchain(BaseBlockchain):
     def create_verack_message(self) -> bytearray:
         return bytearray.fromhex(verack_message)
 
-    def create_tx_getdata_message(self, block_hash) -> bytes:
+    def create_getdata_message(self, block_hash) -> bytes:
         count = 1
         type = 1
         hash = bytearray.fromhex(block_hash)
@@ -128,7 +137,7 @@ class BtcBlockchain(BaseBlockchain):
         return self.socket.send(message)
 
     def receive_message(self) -> bytes:
-        return self.socket.recv(1024)
+        return self.socket.recv(4096)
 
     def decode_message(self, message) -> tuple:
         message_magic = message[:4]
