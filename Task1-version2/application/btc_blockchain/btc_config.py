@@ -20,3 +20,5 @@ block_header_hash = "8C2ACBC70D503FDC36787AC0EE0916D4C504DD1624AA050000000000000
 ip_link = 'https://checkip.amazonaws.com'
 
 btc_version = 70015
+
+block_hash_example = '1dbd981fe6985776b644b173a4d0385ddc1aa2a829688d1e0000000000000000'
