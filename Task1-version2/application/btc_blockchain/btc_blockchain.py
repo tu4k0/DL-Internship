@@ -32,7 +32,7 @@ class BtcBlockchain(BaseBlockchain):
 
     def set_node(self):
         self.node = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.node.bind(('', 8333))
+        self.node.bind(('', btc_mainnet_port))
         return self.node
 
     def get_connections(self, node_num) -> str:
