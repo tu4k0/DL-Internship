@@ -65,15 +65,15 @@ class BtcBlockchain(BaseBlockchain):
 
     def connect_node(self, ip_address, port) -> str:
         try:
-            self.ip_address = ip_address
+            self.ip_address = str(ip_address)
             self.port = int(port)
-            self.socket.connect((self.ip_address, int(self.port)))
+            self.socket.connect((self.ip_address, self.port))
             return self.ip_address
         except Exception:
             raise Exception('Node Url invalid')
 
     def disconnect_node(self):
-        return self.socket.close()
+        self.socket.close()
 
     def make_message(self, command, payload) -> bytes:
         magic = bytes.fromhex(btc_magic)
