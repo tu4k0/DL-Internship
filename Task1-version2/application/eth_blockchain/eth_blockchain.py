@@ -9,18 +9,20 @@ from application.base_blockchain.base_blockchain import BaseBlockchain
 
 
 class EthBlockchain(BaseBlockchain):
-    node: str
+    ip_address: str
     port: int
     socket: socket
+    node: socket
 
-    def __init__(self, node, port):
+    def __init__(self):
         super().__init__()
-        self.node = node
-        self.port = int(port)
 
     def set_socket(self) -> socket.socket:
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        return self.socket
+        if str(self.socket.type) == 'SocketKind.SOCK_STREAM':
+            return self.socket
+        else:
+            return 0
 
     def get_ip(self) -> str:
         ip = requests.get('https://checkip.amazonaws.com').text.strip()
@@ -28,23 +30,33 @@ class EthBlockchain(BaseBlockchain):
 
     def set_node(self):
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.socket.bind(('', 8545))
+        self.node.bind(('', 8545))
+        return self.node
 
-    def get_connections(self, node_number) -> tuple:
-        self.socket.listen(node_number)
-        while True:
-            peer = self.socket.accept()
-            return peer
+    def get_connections(self, node_num) -> tuple:
+        if self.node is None:
+            raise Exception('Node not set yet')
+        else:
+            self.node.listen(node_num)
+            conn, address = self.node.accept()
+            print("Connection from: " + str(address))
+            while True:
+                data = conn.recv(1024).decode()
+                if not data:
+                    break
+                return data
 
-    def connect_node(self) -> str:
+    def connect_node(self, ip_address, port) -> str:
         try:
-            self.socket.connect((self.node, self.port))
-            return self.node
+            self.ip_address = ip_address
+            self.port = int(port)
+            self.socket.connect((self.ip_address, int(self.port)))
+            return self.ip_address
         except Exception:
             raise Exception('Node Url invalid')
 
     def disconnect_node(self):
-        return self.socket.close()
+        self.socket.close()
 
     def make_message(self, node, message):
         request_method = "POST / HTTP/1.1\r\n"
