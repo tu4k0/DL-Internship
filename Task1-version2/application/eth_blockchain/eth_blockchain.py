@@ -6,6 +6,7 @@ import rlp
 import json
 
 from application.base_blockchain.base_blockchain import BaseBlockchain
+from application.eth_blockchain.eth_config import *
 
 
 class EthBlockchain(BaseBlockchain):
@@ -25,12 +26,12 @@ class EthBlockchain(BaseBlockchain):
             return 0
 
     def get_ip(self) -> str:
-        ip = requests.get('https://checkip.amazonaws.com').text.strip()
+        ip = requests.get(ip_link).text.strip()
         return ip
 
     def set_node(self):
         self.node = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.node.bind(('', 8545))
+        self.node.bind(('', eth_mainnet_port))
         return self.node
 
     def get_connections(self, node_num) -> tuple:
@@ -69,7 +70,7 @@ class EthBlockchain(BaseBlockchain):
     def create_getdata_message(self, tx_id) -> bytes:
         method = 'eth_getTransactionByHash'
         tx_getdata_message = {
-            'json': '2.0',
+            'json': json_version,
             'id': '0',
             'method': method,
             'params': [tx_id]
@@ -79,8 +80,8 @@ class EthBlockchain(BaseBlockchain):
     def create_getblock_message(self, block_number) -> bytes:
         method = 'eth_getBlockByNumber'
         block_message = {
-            'json': '2.0',
-            'id': '0',
+            'json': json_version,
+            'id': json_id,
             'method': method,
             'params': [hex(int(block_number)), True]
         }
@@ -89,8 +90,8 @@ class EthBlockchain(BaseBlockchain):
     def create_getblock_tx_number_message(self, block_number):
         method = 'eth_getBlockTransactionCountByNumber'
         block_tx_number_message = {
-            'json': '2.0',
-            'id': '0',
+            'json': json_version,
+            'id': json_id,
             'method': method,
             'params': [hex(int(block_number))]
         }
@@ -99,8 +100,8 @@ class EthBlockchain(BaseBlockchain):
     def create_getblock_number_message(self):
         method = 'eth_blockNumber'
         block_number_message = {
-            'json': '2.0',
-            'id': '0',
+            'json': json_version,
+            'id': json_id,
             'method': method,
             'params': []
         }
@@ -109,8 +110,8 @@ class EthBlockchain(BaseBlockchain):
     def create_getnetwork_message(self):
         method = 'eth_chainId'
         network_message = {
-            "jsonrpc": "2.0",
-            "id": '0',
+            "jsonrpc": json_version,
+            "id": json_id,
             "method": method,
             "params": [],
         }
@@ -119,8 +120,8 @@ class EthBlockchain(BaseBlockchain):
     def create_getmining_message(self):
         method = 'eth_mining'
         mining_message = {
-            "jsonrpc": "2.0",
-            "id": '0',
+            "jsonrpc": json_version,
+            "id": json_id,
             "method": method,
             "params": [],
         }
@@ -129,8 +130,8 @@ class EthBlockchain(BaseBlockchain):
     def create_getbadblocks_message(self):
         method = 'debug_getBadBlocks'
         debug_message = {
-            "jsonrpc": "2.0",
-            "id": '0',
+            "jsonrpc": json_version,
+            "id": json_id,
             "method": method,
             "params": [],
         }
@@ -139,8 +140,8 @@ class EthBlockchain(BaseBlockchain):
     def create_getgasprice_message(self):
         method = 'eth_gasPrice'
         gasprice_message = {
-            "jsonrpc": "2.0",
-            "id": '0',
+            "jsonrpc": json_version,
+            "id": json_id,
             "method": method,
             "params": [],
         }
@@ -149,8 +150,8 @@ class EthBlockchain(BaseBlockchain):
     def create_ping_message(self):
         method = 'eth_syncing'
         ping_message = {
-            'json': '2.0',
-            'id': '0',
+            'json': json_version,
+            'id': json_id,
             'method': method,
             'params': []
         }
