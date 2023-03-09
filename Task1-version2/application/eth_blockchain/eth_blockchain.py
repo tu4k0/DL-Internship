@@ -29,7 +29,7 @@ class EthBlockchain(BaseBlockchain):
         return ip
 
     def set_node(self):
-        self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.node = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.node.bind(('', 8545))
         return self.node
 
@@ -66,7 +66,7 @@ class EthBlockchain(BaseBlockchain):
         message = request_method + host + content_type + content_length
         return message.encode('utf-8')
 
-    def create_tx_getdata_message(self, tx_id) -> bytes:
+    def create_getdata_message(self, tx_id) -> bytes:
         method = 'eth_getTransactionByHash'
         tx_getdata_message = {
             'json': '2.0',
@@ -116,7 +116,7 @@ class EthBlockchain(BaseBlockchain):
         }
         return network_message
 
-    def create_mining_message(self):
+    def create_getmining_message(self):
         method = 'eth_mining'
         mining_message = {
             "jsonrpc": "2.0",
