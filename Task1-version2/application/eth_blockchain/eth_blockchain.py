@@ -181,4 +181,4 @@ class EthBlockchain(BaseBlockchain):
         print("Program Request:")
         print(request_data)
         print("Node response:")
-        print(response_data)
+        print(self.decode_message(response_data))
