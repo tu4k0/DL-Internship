@@ -133,7 +133,7 @@ class CLI:
                                                                                           choices=['getdata',
                                                                                                    'getblock',
                                                                                                    'getblock-tx-number',
-                                                                                                   'getblock_number',
+                                                                                                   'getblock-number',
                                                                                                    'getnetwork',
                                                                                                    'getmining',
                                                                                                    'getbadblocks',
@@ -161,7 +161,7 @@ class CLI:
                                                                                                block_number))
                                                             CLI.__get_response_by_command(CLI, CLI.ETH, message_command,
                                                                                           request)
-                                                        case 'getblock_number':
+                                                        case 'getblock-number':
                                                             request = CLI.ETH.make_message(CLI.ETH.ip_address,
                                                                                            CLI.ETH.create_getblock_number_message())
                                                             CLI.__get_response_by_command(CLI, CLI.ETH, message_command,
@@ -219,9 +219,44 @@ class CLI:
         os.system('taskkill /f /im cmd.exe')
 
     @app.command()
-    def commands_list():
-        parameter = inquirer.list_input("Choose option", choices=['socket', 'bitcoin', 'ethereum'])
-        print(parameter)
+    def help():
+        print('Help center of application commands description')
+        CLI.help_status = True
+        while CLI.help_status:
+            parameter = inquirer.list_input("Choose option", choices=['socket', 'bitcoin', 'ethereum', 'exit'])
+            match parameter:
+                case 'socket':
+                    print('SOCKET COMMANDS')
+                    print('get-ip          :: \tReturns ip address of client')
+                    print('set-socket      :: \tCreate new socket using the given address family, socket type and protocol number')
+                    print('set-node        :: \tCreate node using the given address family, socket type and protocol number')
+                    print('get-connections :: \tEnable server to accept node connections')
+                    print('connect-node    :: \tConnect to remote node at address and port')
+                    print('disconnect-node :: \tClose socket and terminate node connection')
+                case 'bitcoin':
+                    print('BTC COMMANDS')
+                    print('make-message :: \tCreate client message (magic + command + length + checksum + payload) in byte format')
+                    print('version      :: \tReturns node version')
+                    print('verack       :: \tReturns node version acknowledgement')
+                    print('getdata      :: \tReturns content of a specific object')
+                    print('getaddr      :: \tReturns information about known active peers to help with finding potential nodes in the network')
+                    print('ping         :: \tReturns proof that the TCP/IP connection is still valid')
+                    print('getheaders   :: \tReturns headers packet containing the headers of blocks')
+                case 'ethereum':
+                    print('ETH COMMANDS')
+                    print('make-message         :: \tCreate client message (POST + JSON ) in string format')
+                    print('getdata              :: \tReturns information about tx requested by tx hash')
+                    print('getblock             :: \tReturns information about a block by number')
+                    print('getblock-tx-number   :: \tReturns number of tx in a block matching the given block number')
+                    print('getblock-number      :: \tReturns number of most recent block')
+                    print('getnetwork           :: \tReturns chain ID of current network')
+                    print('getmining            :: \tReturns information about node mining status')
+                    print('getbadblocks         :: \tReturns array of recent bad blocks that node seen in network')
+                    print('getgasprice          :: \tReturns current price per gas in wei')
+                    print('ping                 :: \tReturns information about node sync status')
+                case 'exit':
+                    CLI.help_status = False
+
 
     def __get_response_by_command(self, blockchain, message_command: str, request):
         blockchain.send_message(request)
