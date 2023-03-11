@@ -6,24 +6,37 @@
 ## Загальна характеристика програми
 Сервіс представляє собою додаток представлений у вигляді інтерфейсів:  
 base_blockchain - абстрактний базовий клас;   
-btc_blockchain - клас BTC, містить основні методи для взаємодії та обміну повідомленнями з вузлом через P2P Mainnet мережу з використанням сокетів (PORT: 8333);    
-eth_blockchin - клас ETH (на стадії дослідження).    
+btc_blockchain - клас BTC, містить основні методи для взаємодії та обміну повідомленнями з вузлом через P2P Mainnet мережу з використанням сокетів (PORT: 8333, MSG: magic + command + length + checksum);    
+eth_blockchin - клас ETH, містить основні методи для взаємодії та обміну повідомленнями з вузлом через P2P Mainnet мережу з використанням сокетів (PORT: 8545, MSG: JSON);      
 
 ## Технології 
-- Мова програмування: Python;  
-- Середовище розробки: PyCharm;     
+- Мова програмування: Python 3.10.10;  
+- Середовище розробки: PyCharm Pro 2021.3.2;
+- CLI: Typer 0.7.0
 - Механізм встановлення з'єднання з вузлом мережі: Socket (TCP message request/response);  
 
-## Процес запуску програми
-У терміналі набрати команду python app.py
+## Процес запуску програми/сеансу
+У cmd за шляхом DL-Internship\Task1-version2\application набрати команду python main.py
 
 ## Екранні форми роботи програми
 Результат виконання сервісу:  
-![Image text](https://github.com/tu4k0/DL-Internship/blob/master/Task1-version2/app_images/task_result1.png)    
-![Image text](https://github.com/tu4k0/DL-Internship/blob/master/Task1-version2/app_images/task_result2.png)   
-![Image text](https://github.com/tu4k0/DL-Internship/blob/master/Task1-version2/app_images/task_result3.png)  
+python main.py --help  
+![Image text](https://github.com/tu4k0/DL-Internship/blob/master/Task1-version2/app_images/--help.png)    
 
-Wireshark (Моніторинг інтернет пакетів протоколу Bitcoin):  
+python main.py help  
+![Image text](https://github.com/tu4k0/DL-Internship/blob/master/Task1-version2/app_images/help.png)   
+
+python main.py start-session (BTC)  
+![Image text](https://github.com/tu4k0/DL-Internship/blob/master/Task1-version2/app_images/start-session_BTC.png)  
+![Image text](https://github.com/tu4k0/DL-Internship/blob/master/Task1-version2/app_images/start-session_BTC2.png)  
+
+python main.py start-session (ETH)  
+![Image text](https://github.com/tu4k0/DL-Internship/blob/master/Task1-version2/app_images/start-session_ETH1.png)  
+![Image text](https://github.com/tu4k0/DL-Internship/blob/master/Task1-version2/app_images/start-session_ETH2.png)  
+![Image text](https://github.com/tu4k0/DL-Internship/blob/master/Task1-version2/app_images/start-session_ETH3.png)  
+![Image text](https://github.com/tu4k0/DL-Internship/blob/master/Task1-version2/app_images/start-session_ETH4.png)  
+
+Wireshark (BTC):  
 ![Image text](https://github.com/tu4k0/DL-Internship/blob/master/Task1-version2/app_images/wireshark_result.png)    
 
-!! Дана версія програми не є остаточною та демонструє першу версію сервісу !!
+!! Можливі оновлення програмної реалізації завдання !!  
