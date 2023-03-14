@@ -20,19 +20,19 @@ class BtcBlockchain(BaseBlockchain):
 
         return self.node
 
-
-    def get_nodes_address(self) -> list:
+    def get_nodes(self, node_num) -> list:
         found_peers = []
+        search_index = 0
         try:
             for (ip_address, port) in dns_seeds:
-                for info in socket.getaddrinfo(
-                        ip_address,
-                        port,
-                        socket.AF_INET,
-                        socket.SOCK_STREAM,
-                        socket.IPPROTO_TCP
-                ):
-                    found_peers.append((info[4][0], info[4][1]))
+                for info in socket.getaddrinfo(ip_address, port,
+                                               socket.AF_INET, socket.SOCK_STREAM,
+                                               socket.IPPROTO_TCP):
+                    if search_index == node_num:
+                        break
+                    else:
+                        found_peers.append((info[4][0], info[4][1]))
+                        search_index += 1
         except Exception:
             return found_peers
 
@@ -104,3 +104,12 @@ class BtcBlockchain(BaseBlockchain):
         message_payload = message[24:]
 
         return message_magic, message_command, message_length, message_checksum, message_payload
+
+    def print_nodes(self, found_peers):
+        if found_peers:
+            node_id = 1
+            for node in found_peers:
+                print('Node', node_id, ': ', str(node).strip('[]()'))
+                node_id += 1
+        else:
+            print('Failed to get node peers! Try again')
