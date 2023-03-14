@@ -25,7 +25,7 @@ class CLI:
                     bitcoin_status = True
                     while bitcoin_status:
                         command = inquirer.list_input("Choose command",
-                                                      choices=['connect-node', 'show-nodes', 'get-ip', 'set-node',
+                                                      choices=['connect-node', 'get-nodes', 'get-ip', 'set-node',
                                                                'disconnect-node', 'close'])
                         match command:
                             case 'connect-node':
@@ -91,8 +91,11 @@ class CLI:
                                                 connection_status = False
                                 else:
                                     print('Connection Status: False')
-                            case 'show-nodes':
-                                print('Peer nodes address info: ', CLI.BTC.get_nodes_address())
+                            case 'get-nodes':
+                                node_num = int(typer.prompt('Enter nodes number'))
+                                found_peers = CLI.BTC.get_nodes(node_num)
+                                print('Peer nodes address info: ')
+                                CLI.BTC.print_nodes(found_peers)
                             case 'get-ip':
                                 print('Own IP:', CLI.BTC.get_ip())
                             case 'set_node':
