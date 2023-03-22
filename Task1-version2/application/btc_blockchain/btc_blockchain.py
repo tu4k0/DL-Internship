@@ -10,9 +10,11 @@ from application.btc_blockchain.btc_config import *
 
 class BtcBlockchain(BaseBlockchain):
     dns_seeds: list
+    requests: list
 
     def __init__(self):
         super().__init__()
+        self.requests = []
 
     def set_node(self):
         super().set_node()
@@ -20,9 +22,10 @@ class BtcBlockchain(BaseBlockchain):
 
         return self.node
 
-    def get_nodes(self, node_num) -> list:
-        found_peers = []
+    def get_nodes(self, node_num) -> dict:
+        found_peers = dict()
         search_index = 0
+        found_peers.update({self.ip_address: self.port})
         try:
             for (ip_address, port) in dns_seeds:
                 for info in socket.getaddrinfo(ip_address, port,
@@ -31,7 +34,7 @@ class BtcBlockchain(BaseBlockchain):
                     if search_index == node_num:
                         break
                     else:
-                        found_peers.append((info[4][0], info[4][1]))
+                        found_peers.update({str(info[4][0]): info[4][1]})
                         search_index += 1
         except Exception:
             return found_peers
@@ -44,12 +47,12 @@ class BtcBlockchain(BaseBlockchain):
 
         return magic + command + length + checksum + payload
 
-    def create_version_message(self, node) -> bytes:
+    def create_version_message(self, node_ip) -> bytes:
         version = struct.pack("i", btc_version)
         services = struct.pack("Q", 0)
         timestamp = struct.pack("q", int(time.time()))
         add_recv = struct.pack("Q", 0)
-        add_recv += struct.pack(">16s", bytes(node, 'utf-8'))
+        add_recv += struct.pack(">16s", bytes(node_ip, 'utf-8'))
         add_recv += struct.pack(">H", 8333)
         add_from = struct.pack("Q", 0)
         add_from += struct.pack(">16s", bytes(host, 'utf-8'))
@@ -62,7 +65,9 @@ class BtcBlockchain(BaseBlockchain):
         return payload
 
     def create_verack_message(self) -> bytearray:
-        return bytearray.fromhex(verack_message)
+        payload = bytearray.fromhex(verack_message)
+
+        return payload
 
     def create_getdata_message(self, block_hash) -> bytes:
         count = 1
@@ -99,17 +104,30 @@ class BtcBlockchain(BaseBlockchain):
     def decode_response_message(self, message) -> tuple:
         message_magic = message[:4]
         message_command = message[4:16]
-        message_length = struct.unpack("I", message[16:20])
-        message_checksum = message[20:24]
-        message_payload = message[24:]
+        # message_length = struct.unpack("I", message[16:20])
+        # message_checksum = message[20:24]
+        # message_payload = message[24:]
 
-        return message_magic, message_command, message_length, message_checksum, message_payload
+        return message_magic, message_command
 
     def print_nodes(self, found_peers):
         if found_peers:
             node_id = 1
-            for node in found_peers:
-                print('Node', node_id, ': ', str(node).strip('[]()'))
+            for key, value in found_peers.items():
+                print('Node', node_id, ': ', f'{key},', value)
                 node_id += 1
         else:
             print('Failed to get node peers! Try again')
+
+    def execute_message(self, command_name: str, payload: list = None):
+        if payload is not None:
+            request = self.make_message(
+                command_name,
+                getattr(self, f'create_{command_name}_message')(payload)
+            )
+        else:
+            request = self.make_message(command_name, getattr(self, f'create_{command_name}_message')())
+        self.requests.append(request)
+        self.send_message(request)
+        response = self.receive_message()
+        self.print_response(command_name, request, response)
