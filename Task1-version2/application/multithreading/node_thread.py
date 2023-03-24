@@ -1,4 +1,5 @@
 import threading
+import time
 
 from application.btc_blockchain.btc_blockchain import BtcBlockchain
 from application.statistic.statistic import Statistic
@@ -11,7 +12,7 @@ class NodeThread(threading.Thread):
     sockets = []
     requests = []
     responses = []
-    lock = threading.RLock()
+    lock = threading.Lock()
 
     def __init__(self):
         super().__init__()
@@ -36,7 +37,12 @@ class NodeThread(threading.Thread):
     def collect_blockchain_info(self, blockchain, ip_address, port, statistic):
         with self.lock:
             node = self.set_node_socket(blockchain, ip_address, port)
-            statistic.btc_blockchains_objects.append(node)
             node.execute_message(command_name='version', payload=ip_address)
             node.execute_message(command_name='verack')
+            node.execute_message(command_name='getheaders')
+            node.execute_message(command_name='ping')
+            statistic.connections.append(node.socket)
+            statistic.btc_blockchains_objects.append(node)
+
+
 
