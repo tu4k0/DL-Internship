@@ -11,6 +11,9 @@ class BaseBlockchain(ABC):
     node: socket
     ip_address: str
     port: int
+    requests: dict
+    responses: dict
+    commands: list
 
     @abstractmethod
     def __init__(self):
@@ -61,27 +64,33 @@ class BaseBlockchain(ABC):
                 return data
 
     def connect_node(self, ip_address, port) -> str:
+        self.ip_address = str(ip_address)
+        self.port = int(port)
         try:
-            self.ip_address = str(ip_address)
-            self.port = int(port)
             self.socket.connect((self.ip_address, self.port))
+        except TimeoutError:
+            self.socket.close()
+        finally:
             return self.ip_address
-        except Exception:
-            raise Exception('Node Url invalid')
 
     def disconnect_node(self) -> None:
         self.socket.close()
 
     def send_message(self, message) -> int:
-        return self.socket.send(message)
+        try:
+            return self.socket.send(message)
+        except OSError:
+            pass
 
     def receive_message(self) -> bytes:
-        return self.socket.recv(4096)
+        try:
+            return self.socket.recv(4096)
+        except OSError:
+            pass
 
     def print_response(self, command, request_message, response_message) -> None:
-        print("")
         print(f"Message: {command}")
-        print("Program Request:")
+        print("Request:")
         print(request_message)
-        print("Node response:")
-        print(self.decode_response_message(response_message))
+        print("Response:")
+        print(response_message)
