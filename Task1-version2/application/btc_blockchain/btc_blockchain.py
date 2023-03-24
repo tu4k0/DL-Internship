@@ -10,11 +10,12 @@ from application.btc_blockchain.btc_config import *
 
 class BtcBlockchain(BaseBlockchain):
     dns_seeds: list
-    requests: list
 
     def __init__(self):
         super().__init__()
-        self.requests = []
+        self.requests = {}
+        self.responses = {}
+        self.commands = []
 
     def set_node(self):
         super().set_node()
@@ -110,15 +111,6 @@ class BtcBlockchain(BaseBlockchain):
 
         return message_magic, message_command
 
-    def print_nodes(self, found_peers):
-        if found_peers:
-            node_id = 1
-            for key, value in found_peers.items():
-                print('Node', node_id, ': ', f'{key},', value)
-                node_id += 1
-        else:
-            print('Failed to get node peers! Try again')
-
     def execute_message(self, command_name: str, payload: list = None):
         if payload is not None:
             request = self.make_message(
@@ -127,7 +119,9 @@ class BtcBlockchain(BaseBlockchain):
             )
         else:
             request = self.make_message(command_name, getattr(self, f'create_{command_name}_message')())
-        self.requests.append(request)
+        self.commands.append(command_name)
+        self.requests.update({command_name: request})
         self.send_message(request)
         response = self.receive_message()
-        self.print_response(command_name, request, response)
+        if response is not None and not '':
+            self.responses.update({command_name: response})
