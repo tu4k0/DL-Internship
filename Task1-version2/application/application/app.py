@@ -53,6 +53,7 @@ class CLI:
                                         while True:
                                             stats.show_blockchain_statistic()
                                             time.sleep(5)
+                                            os.system('cls')
                                     case 'close':
                                         connection_status = False
                         else:
