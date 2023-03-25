@@ -19,7 +19,16 @@ eth_blockchin - клас ETH, містить основні методи для 
 У cmd за шляхом DL-Internship\Task1-version2\application набрати команду python main.py
 
 ## Екранні форми роботи програми
-Результат виконання сервісу:  
+Результат виконання сервісу:
+
+# Оновлена Версія 2 - багатопотоковість та збір статистики (Bitcoin)  
+![Image text](https://github.com/tu4k0/DL-Internship/blob/master/Task1-version2/app_images/version_2/Bitcoin_connection1.png)  
+![Image text](https://github.com/tu4k0/DL-Internship/blob/master/Task1-version2/app_images/version_2/Bitcoin_connection2.png)  
+![Image text](https://github.com/tu4k0/DL-Internship/blob/master/Task1-version2/app_images/version_2/Bitcoin_connection3.png)  
+![Image text](https://github.com/tu4k0/DL-Internship/blob/master/Task1-version2/app_images/version_2/Bitcoin_connection4.png)  
+![Image text](https://github.com/tu4k0/DL-Internship/blob/master/Task1-version2/app_images/version_2/Bitcoin_connection5.png)  
+
+# Версія 1  
 python main.py --help  
 ![Image text](https://github.com/tu4k0/DL-Internship/blob/master/Task1-version2/app_images/version_1/--help.png)    
 
