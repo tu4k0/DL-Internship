@@ -21,22 +21,22 @@ eth_blockchin - клас ETH, містить основні методи для 
 ## Екранні форми роботи програми
 Результат виконання сервісу:  
 python main.py --help  
-![Image text](https://github.com/tu4k0/DL-Internship/blob/master/Task1-version2/app_images/--help.png)    
+![Image text](https://github.com/tu4k0/DL-Internship/blob/master/Task1-version2/app_images/version_1/--help.png)    
 
 python main.py help  
-![Image text](https://github.com/tu4k0/DL-Internship/blob/master/Task1-version2/app_images/help.png)   
+![Image text](https://github.com/tu4k0/DL-Internship/blob/master/Task1-version2/app_images/version_1/help.png)   
 
 python main.py start-session (BTC)  
-![Image text](https://github.com/tu4k0/DL-Internship/blob/master/Task1-version2/app_images/start-session_BTC.png)  
-![Image text](https://github.com/tu4k0/DL-Internship/blob/master/Task1-version2/app_images/start-session_BTC2.png)  
+![Image text](https://github.com/tu4k0/DL-Internship/blob/master/Task1-version2/app_images/version_1/start-session_BTC.png)  
+![Image text](https://github.com/tu4k0/DL-Internship/blob/master/Task1-version2/app_images/version_1/start-session_BTC2.png)  
 
 python main.py start-session (ETH)  
-![Image text](https://github.com/tu4k0/DL-Internship/blob/master/Task1-version2/app_images/start-session_ETH1.png)  
-![Image text](https://github.com/tu4k0/DL-Internship/blob/master/Task1-version2/app_images/start-session_ETH2.png)  
-![Image text](https://github.com/tu4k0/DL-Internship/blob/master/Task1-version2/app_images/start-session_ETH3.png)  
-![Image text](https://github.com/tu4k0/DL-Internship/blob/master/Task1-version2/app_images/start-session_ETH4.png)  
+![Image text](https://github.com/tu4k0/DL-Internship/blob/master/Task1-version2/app_images/version_1/start-session_ETH1.png)  
+![Image text](https://github.com/tu4k0/DL-Internship/blob/master/Task1-version2/app_images/version_1/start-session_ETH2.png)  
+![Image text](https://github.com/tu4k0/DL-Internship/blob/master/Task1-version2/app_images/version_1/start-session_ETH3.png)  
+![Image text](https://github.com/tu4k0/DL-Internship/blob/master/Task1-version2/app_images/version_1/start-session_ETH4.png)  
 
 Wireshark (BTC):  
-![Image text](https://github.com/tu4k0/DL-Internship/blob/master/Task1-version2/app_images/wireshark_result.png)    
+![Image text](https://github.com/tu4k0/DL-Internship/blob/master/Task1-version2/app_images/wireshark/wireshark_result.png)    
 
 !! Можливі оновлення програмної реалізації завдання !!  
