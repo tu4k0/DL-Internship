@@ -6,8 +6,8 @@
 ## Загальна характеристика програми
 Сервіс представляє собою додаток представлений у вигляді інтерфейсів:  
 base_blockchain - абстрактний базовий клас;   
-btc_blockchain - клас BTC, містить основні методи для взаємодії та обміну повідомленнями з вузлом через P2P Mainnet мережу з використанням сокетів (PORT: 8333, MSG: magic + command + length + checksum);    
-eth_blockchin - клас ETH, містить основні методи для взаємодії та обміну повідомленнями з вузлом через P2P Mainnet мережу з використанням сокетів (PORT: 8545, MSG: JSON);      
+btc_blockchain - клас Bitcoin, містить основні методи для взаємодії та обміну повідомленнями з вузлом через P2P Mainnet мережу з використанням сокетів (PORT: 8333, MSG: magic + command + length + checksum);    
+eth_blockchin - клас Ethereum, містить основні методи для взаємодії та обміну повідомленнями з вузлом через P2P Mainnet мережу з використанням сокетів (PORT: 8545, MSG: JSON);      
 
 ## Технології 
 - Мова програмування: Python 3.10.10;  
@@ -16,10 +16,9 @@ eth_blockchin - клас ETH, містить основні методи для 
 - Механізм встановлення з'єднання з вузлом мережі: Socket (TCP message request/response);  
 
 ## Процес запуску програми/сеансу
-У cmd за шляхом DL-Internship\Task1-version2\application набрати команду python main.py
+У cmd за шляхом DL-Internship\Task1-version2\application набрати команду python main.py start-session
 
 ## Екранні форми роботи програми
-Результат виконання сервісу:
 
 # Оновлена Версія 2 - багатопотоковість та збір статистики (Bitcoin)  
 ![Image text](https://github.com/tu4k0/DL-Internship/blob/master/Task1-version2/app_images/version_2/Bitcoin_connection1.png)  
@@ -28,7 +27,9 @@ eth_blockchin - клас ETH, містить основні методи для 
 ![Image text](https://github.com/tu4k0/DL-Internship/blob/master/Task1-version2/app_images/version_2/Bitcoin_connection4.png)  
 ![Image text](https://github.com/tu4k0/DL-Internship/blob/master/Task1-version2/app_images/version_2/Bitcoin_connection5.png)  
 
-# Версія 1  
+Опис виконання: користувач обирає облікову систему та задає IP адресу та порт вузла для підключення та кількість вузлів, з якими необхідно підтримувати з'єднання. Далі система у багатопотоковому режимі збирає статистику від кожного вузла та окремим потоком відображує зібрану статистику на екрані з оновленням 1 раз на 5 секунд.  
+
+# Версія 1 (Не оновлена) 
 python main.py --help  
 ![Image text](https://github.com/tu4k0/DL-Internship/blob/master/Task1-version2/app_images/version_1/--help.png)    
 
@@ -48,4 +49,4 @@ python main.py start-session (ETH)
 Wireshark (BTC):  
 ![Image text](https://github.com/tu4k0/DL-Internship/blob/master/Task1-version2/app_images/wireshark/wireshark_result.png)    
 
-!! Можливі оновлення програмної реалізації завдання !!  
+!! Можливі оновлення та покращення програмної реалізації завдання !!  
