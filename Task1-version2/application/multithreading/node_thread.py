@@ -8,7 +8,7 @@ class NodeThread(threading.Thread):
     sockets = []
     requests = []
     responses = []
-    lock = threading.Lock()
+    lock = threading.RLock()
 
     def __init__(self):
         super().__init__()
