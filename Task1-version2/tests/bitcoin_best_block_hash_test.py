@@ -5,8 +5,6 @@ import socket
 import struct
 import time
 
-from application.btc_blockchain.btc_config import *
-
 constant = {'magic_value': 0xd9b4bef9,
              'peer_ip_address': '100.36.127.250',
              'peer_tcp_port': 8333,
