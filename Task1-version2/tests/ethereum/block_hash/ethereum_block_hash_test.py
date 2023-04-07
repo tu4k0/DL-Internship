@@ -7,9 +7,8 @@ import json
 
 from application.eth_blockchain.eth_config import *
 
-constant = {'magic_value': 0xd9b4bef9,
-             'peer_ip_address': '100.36.127.250',
-             'peer_tcp_port': 8333,
+constant = {'peer_ip_address': '144.217.253.194',
+             'peer_tcp_port': 8545,
              'buffer_size': 4096}
 
 
@@ -131,7 +130,7 @@ def create_ping_message():
     return ping_message
 
 
-def decode_response_message(self, response):
+def decode_response_message(response):
     response = response.decode('utf-8')
     message = {}
     status = message.update(status=response[9:15])
@@ -149,16 +148,22 @@ if __name__ == '__main__':
     start_time = time.time()
 
     # Create Messages
-
+    version_payload = create_getblock_number_message()
+    version_message = make_message(constant['peer_ip_address'], version_payload)
 
     # Establish Node TCP Connection
     node = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     node.connect((constant['peer_ip_address'], constant['peer_tcp_port']))
 
     #Send message to ETH node
+    node.send(version_message)
 
-    #Retreiving statistic result
+    #Retreiving result
+    result = node.recv(1024)
+
+    #Show statistic
     print('Retreiving block hash data execution time: ', time.time()-start_time)
+    print(result)
 
     # Disconnect from node and Close the TCP connection
     node.close()
