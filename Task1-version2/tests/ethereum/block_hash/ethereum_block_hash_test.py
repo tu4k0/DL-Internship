@@ -33,13 +33,13 @@ def create_getblock_number_payload():
     return block_number_message
 
 
-def create_getblock_hash_payload():
+def create_getblock_hash_payload(block_number):
     method = 'eth_getBlockByNumber'
     block_hash_message = {
         'jsonrpc': '2.0',
         'id': '1',
         'method': method,
-        'params': ["latest", False]
+        'params': [hex(block_number), False]
     }
 
     return block_hash_message
@@ -48,12 +48,17 @@ def create_getblock_hash_payload():
 def decode_response_message(response):
     response = response.decode('utf-8')
     message = {}
-    status = message['status']=response[9:15]
-    type = message['type']=response[43:47]
+    status = message['status'] = response[9:15]
+    type = message['type'] = response[43:47]
     length = message.update(length=len(response))
     body_start = response.find('{')
-    body_end = response.rfind('}')
-    body = message.update(result=json.loads(response[body_start:body_end + 1])['result'])
+    if 'transactions' in response:
+        body_end = response.rfind('transactions')
+        response = response[body_start:body_end-2] + '}' + '}'
+        body = message.update(result=json.loads(response)['result'])
+    else:
+        body_end = response.rfind('}')
+        body = message.update(result=json.loads(response[body_start:body_end + 1])['result'])
 
     return message
 
@@ -61,32 +66,36 @@ def decode_response_message(response):
 if __name__ == '__main__':
     start_time = time.time()
 
-    # Create Messages
+    # Create Message to get best block number
     getblock_payload = create_getblock_number_payload()
     getblock_message = create_message(getblock_payload)
-    getblockhash_payload = create_getblock_hash_payload()
-    getblockhash_message = create_message(getblockhash_payload)
 
     # Establish Node TCP Connection
-    print('Setting connection')
     node = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     node.connect((constant['peer_ip_address'], constant['peer_tcp_port']))
 
     #Send get block number message to ETH node
-    print('send')
     node.send(getblock_message)
 
-    #Retreiving result
-    print('receive')
-    result = node.recv(4096)
+    #Retreiving response
+    response = node.recv(constant['buffer_size'])
+    best_block_number = int(decode_response_message(response)['result'], 16)
 
+    # Create Message to get best block hash from received best number
+    getblockhash_payload = create_getblock_hash_payload(best_block_number)
+    getblockhash_message = create_message(getblockhash_payload)
+
+    # Send get block hash message to ETH node
     node.send(getblockhash_message)
-    print(node.recv(4096))
+
+    # Retreiving result
+    response = node.recv(constant['buffer_size'])
+    best_block_hash = decode_response_message(response)['result']['hash']
 
     #Show statistic
-    print('Retreiving block hash data execution time: ', time.time()-start_time)
-    print(result)
-    print(int(decode_response_message(result)['result'], 16))
+    print('Retrieving Ethereum blockchain data execution time: ', time.time()-start_time)
+    print('Best block number: ', best_block_number)
+    print('Best block hash: ', best_block_hash)
 
     # Disconnect from node and Close the TCP connection
     node.close()
