@@ -6,7 +6,7 @@ import rlp
 import json
 
 
-constant = {'peer_ip_address': '168.119.148.90',
+constant = {'peer_ip_address': '118.122.12.3',
              'peer_tcp_port': 8545,
              'buffer_size': 4096}
 
@@ -32,6 +32,16 @@ def create_getblock_number_message():
 
     return block_number_message
 
+def create_getblock_hash_message():
+    method = 'eth_getBlockByNumber'
+    block_hash_message = {
+        'json': '2.0',
+        'id': '1',
+        'method': method,
+        'params': ["0x64", False]
+    }
+
+    return block_hash_message
 
 def decode_response_message(response):
     response = response.decode('utf-8')
@@ -53,19 +63,24 @@ if __name__ == '__main__':
     # Create Messages
     getblock_payload = create_getblock_number_message()
     getblock_message = make_message(getblock_payload)
+    getblockhash_payload = create_getblock_hash_message()
+    getblockhash_message = make_message(getblockhash_payload)
 
     # Establish Node TCP Connection
     print('Setting connection')
     node = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     node.connect((constant['peer_ip_address'], constant['peer_tcp_port']))
 
-    #Send message to ETH node
+    #Send get block number message to ETH node
     print('send')
     node.send(getblock_message)
 
     #Retreiving result
     print('receive')
-    result = node.recv(1024)
+    result = node.recv(4096)
+
+    node.send(getblockhash_message)
+    print(node.recv(4096))
 
     #Show statistic
     print('Retreiving block hash data execution time: ', time.time()-start_time)
