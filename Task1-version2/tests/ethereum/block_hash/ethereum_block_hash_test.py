@@ -5,16 +5,15 @@ import requests
 import rlp
 import json
 
-from application.eth_blockchain.eth_config import *
 
-constant = {'peer_ip_address': '144.217.253.194',
+constant = {'peer_ip_address': '168.119.148.90',
              'peer_tcp_port': 8545,
              'buffer_size': 4096}
 
 
-def make_message(node, message):
+def make_message(message):
     request_method = "POST / HTTP/1.1\r\n"
-    host = f"Host: {node}\r\n"
+    host = f"Host: 192.168.0.100\r\n"
     content_type = f"Content-Type: application/json\r\n"
     content_length = f"Content-Length: {len(json.dumps(message))}\r\n\r\n{json.dumps(message)}"
     message = request_method + host + content_type + content_length
@@ -22,112 +21,16 @@ def make_message(node, message):
     return message.encode('utf-8')
 
 
-def create_getdata_messagetx_id(tx_id):
-    method = 'eth_getTransactionByHash'
-    tx_getdata_message = {
-        'json': json_version,
-        'id': '0',
-        'method': method,
-        'params': [tx_id]
-    }
-
-    return tx_getdata_message
-
-
-def create_getblock_message(block_number):
-    method = 'eth_getBlockByNumber'
-    block_message = {
-        'json': json_version,
-        'id': json_id,
-        'method': method,
-        'params': [hex(int(block_number)), True]
-    }
-
-    return block_message
-
-
-def create_getblock_tx_number_message(block_number):
-    method = 'eth_getBlockTransactionCountByNumber'
-    block_tx_number_message = {
-        'json': json_version,
-        'id': json_id,
-        'method': method,
-        'params': [hex(int(block_number))]
-    }
-
-    return block_tx_number_message
-
-
 def create_getblock_number_message():
     method = 'eth_blockNumber'
     block_number_message = {
-        'json': json_version,
-        'id': json_id,
+        'json': '2.0',
+        'id': '1',
         'method': method,
         'params': []
     }
 
     return block_number_message
-
-
-def create_getnetwork_message():
-    method = 'eth_chainId'
-    network_message = {
-        "jsonrpc": json_version,
-        "id": json_id,
-        "method": method,
-        "params": [],
-    }
-
-    return network_message
-
-
-def create_getmining_message():
-    method = 'eth_mining'
-    mining_message = {
-        "jsonrpc": json_version,
-        "id": json_id,
-        "method": method,
-        "params": [],
-    }
-
-    return mining_message
-
-
-def create_getbadblocks_message():
-    method = 'debug_getBadBlocks'
-    debug_message = {
-        "jsonrpc": json_version,
-        "id": json_id,
-        "method": method,
-        "params": [],
-    }
-
-    return debug_message
-
-
-def create_getgasprice_message():
-    method = 'eth_gasPrice'
-    gasprice_message = {
-        "jsonrpc": json_version,
-        "id": json_id,
-        "method": method,
-        "params": [],
-    }
-
-    return gasprice_message
-
-
-def create_ping_message():
-    method = 'eth_syncing'
-    ping_message = {
-        'json': json_version,
-        'id': json_id,
-        'method': method,
-        'params': []
-    }
-
-    return ping_message
 
 
 def decode_response_message(response):
@@ -148,17 +51,20 @@ if __name__ == '__main__':
     start_time = time.time()
 
     # Create Messages
-    version_payload = create_getblock_number_message()
-    version_message = make_message(constant['peer_ip_address'], version_payload)
+    getblock_payload = create_getblock_number_message()
+    getblock_message = make_message(getblock_payload)
 
     # Establish Node TCP Connection
+    print('Setting connection')
     node = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     node.connect((constant['peer_ip_address'], constant['peer_tcp_port']))
 
     #Send message to ETH node
-    node.send(version_message)
+    print('send')
+    node.send(getblock_message)
 
     #Retreiving result
+    print('receive')
     result = node.recv(1024)
 
     #Show statistic
