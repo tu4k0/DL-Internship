@@ -6,7 +6,7 @@ import rlp
 import json
 
 
-constant = {'peer_ip_address': '118.122.12.3',
+constant = {'peer_ip_address': '183.136.220.19',
              'peer_tcp_port': 8545,
              'buffer_size': 4096}
 
@@ -24,10 +24,10 @@ def make_message(message):
 def create_getblock_number_message():
     method = 'eth_blockNumber'
     block_number_message = {
-        'json': '2.0',
-        'id': '1',
+        'jsonrpc': '2.0',
         'method': method,
-        'params': []
+        'params': [],
+        'id': '0',
     }
 
     return block_number_message
@@ -35,26 +35,26 @@ def create_getblock_number_message():
 def create_getblock_hash_message():
     method = 'eth_getBlockByNumber'
     block_hash_message = {
-        'json': '2.0',
+        'jsonrpc': '2.0',
         'id': '1',
         'method': method,
-        'params': ["0x64", False]
+        'params': ["latest", False]
     }
 
     return block_hash_message
 
+
 def decode_response_message(response):
     response = response.decode('utf-8')
     message = {}
-    status = message.update(status=response[9:15])
-    type = message.update(type=response[43:47])
-    time = message.update(time=str(int(response[72:74]) + 2) + response[74:80])
+    status = message['status']=response[9:15]
+    type = message['type']=response[43:47]
     length = message.update(length=len(response))
     body_start = response.find('{')
     body_end = response.rfind('}')
     body = message.update(result=json.loads(response[body_start:body_end + 1])['result'])
 
-    return json.dumps(message, indent=4)
+    return message
 
 
 if __name__ == '__main__':
@@ -85,6 +85,7 @@ if __name__ == '__main__':
     #Show statistic
     print('Retreiving block hash data execution time: ', time.time()-start_time)
     print(result)
+    print(decode_response_message(result)['result'])
 
     # Disconnect from node and Close the TCP connection
     node.close()
