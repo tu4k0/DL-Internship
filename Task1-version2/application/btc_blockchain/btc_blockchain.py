@@ -44,9 +44,13 @@ class BtcBlockchain(BaseBlockchain):
         magic = bytes.fromhex(btc_magic)
         command = bytes(command, 'utf-8') + (12 - len(command)) * b"\00"
         length = struct.pack("I", len(payload))
-        checksum = hashlib.sha256(hashlib.sha256(payload).digest()).digest()[:4]
+        if payload == '':
+            check = b"\x5d\xf6\xe0\xe2"
+        else:
+            check = hashlib.sha256(hashlib.sha256(payload).digest()).digest()[:4]
+        message = magic + command + length + check + payload
 
-        return magic + command + length + checksum + payload
+        return message
 
     def create_version_message(self, node_ip) -> bytes:
         version = struct.pack("i", btc_version)
