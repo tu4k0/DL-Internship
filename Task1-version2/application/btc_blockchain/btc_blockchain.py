@@ -83,13 +83,9 @@ class BtcBlockchain(BaseBlockchain):
         return payload
 
     def create_getaddr_message(self) -> bytes:
-        magic = bytes.fromhex(btc_magic)
-        command = b"getaddr" + 5 * b"\00"
         payload = b""
-        length = struct.pack("I", len(payload))
-        checksum = hashlib.sha256(hashlib.sha256(payload).digest()).digest()[:4]
 
-        return magic + command + length + checksum + payload
+        return payload
 
     def create_ping_message(self) -> bytes:
         nonce = random.randint(1, 1 ** 32)
