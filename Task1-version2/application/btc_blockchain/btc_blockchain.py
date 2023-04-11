@@ -1,3 +1,4 @@
+import binascii
 import hashlib
 import random
 import socket
@@ -127,14 +128,20 @@ class BtcBlockchain(BaseBlockchain):
 
         return block_height
 
-    def decode_response_message(self, message) -> tuple:
-        message_magic = message[:4]
-        message_command = message[4:16]
-        # message_length = struct.unpack("I", message[16:20])
-        # message_checksum = message[20:24]
-        # message_payload = message[24:]
+    def decode_getheaders_response(self, response) -> str:
+        index = str(response).find("getheaders")
+        if index == -1:
+            getheaders = self.node.recv(4096)
+            index = str(getheaders).find("getheaders")
+            header = binascii.hexlify(getheaders)[index + 40:index + 104]
+        else:
+            header = binascii.hexlify(response)[140:204]
 
-        return message_magic, message_command
+        block = header.decode("utf-8")
+        block_hash = bytearray.fromhex(block)
+        block_hash.reverse()
+
+        return response.hex()
 
     def execute_message(self, command_name: str, payload: list = None):
         if payload is not None:
