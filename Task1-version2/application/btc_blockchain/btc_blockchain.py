@@ -57,6 +57,13 @@ class BtcBlockchain(BaseBlockchain):
 
         return b'\x0F' + sub_version.encode()
 
+    def create_network_address(self, ip_address, port):
+        network_address = struct.pack('>8s16sH', b'\x01',
+                                      bytearray.fromhex("00000000000000000000ffff") + socket.inet_aton(ip_address),
+                                      port)
+
+        return network_address
+
     def create_version_message(self, node_ip) -> bytes:
         version = 70015
         services = 1
