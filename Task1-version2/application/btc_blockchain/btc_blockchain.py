@@ -101,12 +101,12 @@ class BtcBlockchain(BaseBlockchain):
 
         return payload
 
-    def create_getheaders_message(self) -> bytes:
-        version = struct.pack("i", btc_version)
-        hash_count = struct.pack("i", 1)
-        block_header_hashes = struct.pack('s', bytearray.fromhex(block_header_hash))
-        stop_hash = b"0"
-        payload = version + hash_count + block_header_hashes + stop_hash
+    def create_getheaders_message(self, start_block_hash) -> bytes:
+        version = struct.pack("i", 70015)
+        hash_count = struct.pack("<b", 1)
+        block_locator_hashes = bytes.fromhex(start_block_hash)
+        hash_stop = bytes.fromhex("00" * 32)
+        payload = version + hash_count + block_locator_hashes + hash_stop
 
         return payload
 
@@ -114,8 +114,8 @@ class BtcBlockchain(BaseBlockchain):
         version = struct.pack("i", 70015)
         hash_count = struct.pack("<b", 1)
         hash_stop = bytes.fromhex(end_block_hash)
-        start_block_header_hash = bytes.fromhex(start_block_hash)
-        payload = version + hash_count + start_block_header_hash + hash_stop
+        block_locator_hashes = bytes.fromhex(start_block_hash)
+        payload = version + hash_count + block_locator_hashes + hash_stop
 
         return payload
 
