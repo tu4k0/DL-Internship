@@ -98,6 +98,15 @@ class BtcBlockchain(BaseBlockchain):
 
         return payload
 
+    def create_getblocks_message(self, start_block_hash, end_block_hash):
+        version = struct.pack("i", 70015)
+        hash_count = struct.pack("<b", 1)
+        hash_stop = bytes.fromhex(end_block_hash)
+        start_block_header_hash = bytes.fromhex(start_block_hash)
+        payload = version + hash_count + start_block_header_hash + hash_stop
+
+        return payload
+
     def decode_response_message(self, message) -> tuple:
         message_magic = message[:4]
         message_command = message[4:16]
