@@ -3,6 +3,7 @@ import random
 import socket
 import struct
 import time
+import requests
 
 from application.base_blockchain.base_blockchain import BaseBlockchain
 from application.btc_blockchain.btc_config import *
@@ -118,6 +119,13 @@ class BtcBlockchain(BaseBlockchain):
         payload = version + hash_count + block_locator_hashes + hash_stop
 
         return payload
+
+    def create_getblock_height_message(self, block_hash):
+        getblock_height_message = f"https://blockstream.info/api/block/{block_hash}"
+        response = requests.get(getblock_height_message)
+        block_height = response.json()['height']
+
+        return block_height
 
     def decode_response_message(self, message) -> tuple:
         message_magic = message[:4]
