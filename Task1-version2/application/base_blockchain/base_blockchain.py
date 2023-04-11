@@ -20,7 +20,7 @@ class BaseBlockchain(ABC):
         pass
 
     @abstractmethod
-    def make_message(self, command, payload) -> bytes | str:
+    def make_message(self, command, payload) -> bytes or str:
         pass
 
     @abstractmethod
