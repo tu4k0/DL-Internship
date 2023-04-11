@@ -52,6 +52,11 @@ class BtcBlockchain(BaseBlockchain):
 
         return message
 
+    def create_sub_version(self):
+        sub_version = "/Satoshi:0.24.1/"
+
+        return b'\x0F' + sub_version.encode()
+
     def create_version_message(self, node_ip) -> bytes:
         version = 70015
         services = 1
