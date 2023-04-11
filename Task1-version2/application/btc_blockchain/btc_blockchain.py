@@ -53,19 +53,15 @@ class BtcBlockchain(BaseBlockchain):
         return message
 
     def create_version_message(self, node_ip) -> bytes:
-        version = struct.pack("i", btc_version)
-        services = struct.pack("Q", 0)
-        timestamp = struct.pack("q", int(time.time()))
-        add_recv = struct.pack("Q", 0)
-        add_recv += struct.pack(">16s", bytes(node_ip, 'utf-8'))
-        add_recv += struct.pack(">H", 8333)
-        add_from = struct.pack("Q", 0)
-        add_from += struct.pack(">16s", bytes(host, 'utf-8'))
-        add_from += struct.pack(">H", 8333)
-        nonce = struct.pack("Q", random.getrandbits(64))
-        user_agent = struct.pack("B", 0)
-        height = struct.pack("i", 0)
-        payload = version + services + timestamp + add_recv + add_from + nonce + user_agent + height
+        version = 70015
+        services = 1
+        timestamp = int(time.time())
+        addr_local = create_network_address("127.0.0.1", 8333)
+        addr_peer = create_network_address(node_ip, 8333)
+        nonce = random.getrandbits(64)
+        start_height = 0
+        payload = struct.pack('<LQQ26s26sQ16sL', version, services, timestamp, addr_peer,
+                              addr_local, nonce, create_sub_version(), start_height)
 
         return payload
 
