@@ -116,7 +116,7 @@ class EthBlockchain(BaseBlockchain):
             "jsonrpc": json_version,
             "method": command,
             "params": [],
-            "id": json_id,
+            "id": json_id
         }
 
         return gas_price_message
@@ -124,10 +124,10 @@ class EthBlockchain(BaseBlockchain):
     def create_ping_message(self):
         command = 'eth_syncing'
         ping_message = {
-            'json': json_version,
+            'jsonrpc': json_version,
             'method': command,
             'params': [],
-            'id': json_id,
+            'id': json_id
         }
 
         return ping_message
@@ -135,13 +135,24 @@ class EthBlockchain(BaseBlockchain):
     def create_hashrate_message(self):
         command = 'eth_hashrate'
         hashrate_message = {
-            'json': json_version,
+            'jsonrpc': json_version,
             'method': command,
             'params': [],
-            'id': json_id,
+            'id': json_id
         }
 
         return hashrate_message
+
+    def create_net_listening_payload():
+        command = 'net_listening'
+        net_listening_message = {
+            'jsonrpc': json_version,
+            'method': command,
+            'params': [],
+            'id': json_id
+        }
+
+        return net_listening_message
 
     def send_message(self, message) -> int:
         return self.socket.send(message)
