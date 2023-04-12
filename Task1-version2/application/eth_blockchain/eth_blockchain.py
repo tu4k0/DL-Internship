@@ -132,6 +132,17 @@ class EthBlockchain(BaseBlockchain):
 
         return ping_message
 
+    def create_hashrate_message(self):
+        command = 'eth_hashrate'
+        hashrate_message = {
+            'json': json_version,
+            'method': command,
+            'params': [],
+            'id': json_id,
+        }
+
+        return hashrate_message
+
     def send_message(self, message) -> int:
         return self.socket.send(message)
 
