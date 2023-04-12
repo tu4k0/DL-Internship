@@ -24,110 +24,110 @@ class EthBlockchain(BaseBlockchain):
 
         return self.node
 
-    def make_message(self, node, message):
-        request_method = "POST / HTTP/1.1\r\n"
-        host = f"Host: {node}\r\n"
+    def make_message(self, command, payload):
+        request_command = f"{command} / HTTP/1.1\r\n"
+        host = f"Host: {host_ip}\r\n"
         content_type = f"Content-Type: application/json\r\n"
-        content_length = f"Content-Length: {len(json.dumps(message))}\r\n\r\n{json.dumps(message)}"
-        message = request_method + host + content_type + content_length
+        content_length = f"Content-Length: {len(json.dumps(payload))}\r\n\r\n{json.dumps(payload)}"
+        message = request_command + host + content_type + content_length
 
         return message.encode('utf-8')
 
-    def create_getdata_message(self, tx_id) -> bytes:
-        method = 'eth_getTransactionByHash'
+    def create_getdata_message(self, tx_id):
+        command = 'eth_getTransactionByHash'
         tx_getdata_message = {
-            'json': json_version,
-            'id': '0',
-            'method': method,
-            'params': [tx_id]
+            'jsonrpc': json_version,
+            'method': command,
+            'params': [tx_id],
+            'id': json_id
         }
 
         return tx_getdata_message
 
-    def create_getblock_message(self, block_number) -> bytes:
-        method = 'eth_getBlockByNumber'
+    def create_getblock_message(self, block_number):
+        command = 'eth_getBlockByNumber'
         block_message = {
-            'json': json_version,
-            'id': json_id,
-            'method': method,
-            'params': [hex(int(block_number)), True]
+            'jsonrpc': json_version,
+            'method': command,
+            'params': [hex(block_number), False],
+            'id': json_id
         }
 
         return block_message
 
     def create_getblock_tx_number_message(self, block_number):
-        method = 'eth_getBlockTransactionCountByNumber'
+        command = 'eth_getBlockTransactionCountByNumber'
         block_tx_number_message = {
-            'json': json_version,
-            'id': json_id,
-            'method': method,
-            'params': [hex(int(block_number))]
+            'jsonrpc': json_version,
+            'method': command,
+            'params': [hex(block_number)],
+            'id': json_id
         }
 
         return block_tx_number_message
 
-    def create_getblock_number_message(self):
-        method = 'eth_blockNumber'
-        block_number_message = {
-            'json': json_version,
+    def create_best_block_height_message(self):
+        command = 'eth_blockNumber'
+        best_block_height_message = {
+            'jsonrpc': json_version,
+            'method': command,
+            'params': [],
             'id': json_id,
-            'method': method,
-            'params': []
         }
 
-        return block_number_message
+        return best_block_height_message
 
     def create_getnetwork_message(self):
-        method = 'eth_chainId'
+        command = 'eth_chainId'
         network_message = {
             "jsonrpc": json_version,
-            "id": json_id,
-            "method": method,
+            "method": command,
             "params": [],
+            "id": json_id
         }
 
         return network_message
 
     def create_getmining_message(self):
-        method = 'eth_mining'
+        command = 'eth_mining'
         mining_message = {
             "jsonrpc": json_version,
-            "id": json_id,
-            "method": method,
+            "method": command,
             "params": [],
+            "id": json_id
         }
 
         return mining_message
 
     def create_getbadblocks_message(self):
-        method = 'debug_getBadBlocks'
-        debug_message = {
+        command = 'debug_getBadBlocks'
+        debug_bad_blocks_message = {
             "jsonrpc": json_version,
-            "id": json_id,
-            "method": method,
+            "method": command,
             "params": [],
+            "id": json_id
         }
 
-        return debug_message
+        return debug_bad_blocks_message
 
     def create_getgasprice_message(self):
-        method = 'eth_gasPrice'
-        gasprice_message = {
+        command = 'eth_gasPrice'
+        gas_price_message = {
             "jsonrpc": json_version,
-            "id": json_id,
-            "method": method,
+            "method": command,
             "params": [],
+            "id": json_id,
         }
 
-        return gasprice_message
+        return gas_price_message
 
     def create_ping_message(self):
-        method = 'eth_syncing'
+        command = 'eth_syncing'
         ping_message = {
             'json': json_version,
+            'method': command,
+            'params': [],
             'id': json_id,
-            'method': method,
-            'params': []
         }
 
         return ping_message
@@ -141,13 +141,17 @@ class EthBlockchain(BaseBlockchain):
     def decode_response_message(self, response):
         response = response.decode('utf-8')
         message = {}
-        status = message.update(status=response[9:15])
-        type = message.update(type=response[43:47])
-        time = message.update(time=str(int(response[72:74]) + 2) + response[74:80])
+        status = message['status'] = response[9:15]
+        type = message['type'] = response[43:47]
         length = message.update(length=len(response))
         body_start = response.find('{')
-        body_end = response.rfind('}')
-        body = message.update(result=json.loads(response[body_start:body_end + 1])['result'])
+        if 'transactions' in response:
+            body_end = response.rfind('transactions')
+            response = response[body_start:body_end - 2] + '}' + '}'
+            message.update(result=json.loads(response)['result'])
+        else:
+            body_end = response.rfind('}')
+            message.update(result=json.loads(response[body_start:body_end + 1])['result'])
 
-        return json.dumps(message, indent=4)
+        return message
 

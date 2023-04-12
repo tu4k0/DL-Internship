@@ -1,6 +1,6 @@
 eth_mainnet_port = 8545
 
-host = "192.168.0.100"
+host_ip = "192.168.0.100"
 
 ip_link = 'https://checkip.amazonaws.com'
 
