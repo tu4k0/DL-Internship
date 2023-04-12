@@ -44,12 +44,23 @@ class EthBlockchain(BaseBlockchain):
 
         return tx_getdata_message
 
-    def create_getblock_message(self, block_number):
+    def create_getblock_by_number_message(self, block_number):
         command = 'eth_getBlockByNumber'
         block_message = {
             'jsonrpc': json_version,
             'method': command,
             'params': [hex(block_number), False],
+            'id': json_id
+        }
+
+        return block_message
+
+    def create_getblock_by_hash_message(self, block_hash):
+        command = 'eth_getBlockByHash'
+        block_message = {
+            'jsonrpc': json_version,
+            'method': command,
+            'params': [block_hash, False],
             'id': json_id
         }
 
