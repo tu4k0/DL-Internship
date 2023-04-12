@@ -143,7 +143,7 @@ class EthBlockchain(BaseBlockchain):
 
         return hashrate_message
 
-    def create_net_listening_payload():
+    def create_net_listening_message():
         command = 'net_listening'
         net_listening_message = {
             'jsonrpc': json_version,
@@ -153,6 +153,17 @@ class EthBlockchain(BaseBlockchain):
         }
 
         return net_listening_message
+
+    def create_net_peer_count_message():
+        command = 'net_peerCount'
+        net_peer_count_message = {
+            'jsonrpc': json_version,
+            'method': command,
+            'params': [],
+            'id': json_id
+        }
+
+        return net_peer_count_message
 
     def send_message(self, message) -> int:
         return self.socket.send(message)
