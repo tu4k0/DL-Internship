@@ -70,12 +70,12 @@ class BtcBlockchain(BaseBlockchain):
         version = 70015
         services = 1
         timestamp = int(time.time())
-        addr_local = create_network_address("127.0.0.1", 8333)
-        addr_peer = create_network_address(node_ip, 8333)
+        addr_local = self.create_network_address("127.0.0.1", 8333)
+        addr_peer = self.create_network_address(node_ip, 8333)
         nonce = random.getrandbits(64)
         start_height = 0
         payload = struct.pack('<LQQ26s26sQ16sL', version, services, timestamp, addr_peer,
-                              addr_local, nonce, create_sub_version(), start_height)
+                              addr_local, nonce, self.create_sub_version(), start_height)
 
         return payload
 
