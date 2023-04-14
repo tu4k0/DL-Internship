@@ -1,12 +1,26 @@
-from web3 import Web3
+import csv
+import pandas as pd
+from pathlib import Path
 
-# create a web3 instance
-web3 = Web3(Web3.HTTPProvider('https://mainnet.infura.io/v3/76510e6c5fd74be096e68fd41ba967a0'))
+nodes_list = 'C:/Users/Admin/Desktop/Tu4k0/DL-Internship/Task1-version2/application/eth_blockchain/ethereum-nodestrackerlist.csv'
 
 
-latest_block = web3.eth.block_number
-print(f"Latest block number: {latest_block}")
+def get_nodes_list(nodes_list, node_number):
+    with open(nodes_list, 'r') as csv_file:
+        reader = csv.reader(csv_file)
 
-peers = web3.eth.getNodeInfo() # need research
+        counter = 0
 
-print(f"List of connected peers: {peers}")
+        for row in reader:
+            if counter == node_number+1:
+                break
+            else:
+                if counter == 0:
+                    counter += 1
+                else:
+                    print(row[2])
+                    counter += 1
+
+
+if __name__ == '__main__':
+    get_nodes_list(nodes_list, 5)
