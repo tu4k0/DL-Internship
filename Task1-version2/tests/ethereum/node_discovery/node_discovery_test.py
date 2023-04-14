@@ -1,15 +1,12 @@
-import requests
-from bs4 import BeautifulSoup
+from web3 import Web3
 
-# Making a GET request
-r = requests.get('https://etherscan.io/nodetracker/nodes')
-print("Http Response Code:", r)
+# create a web3 instance
+web3 = Web3(Web3.HTTPProvider('https://mainnet.infura.io/v3/76510e6c5fd74be096e68fd41ba967a0'))
 
-# Parsing the HTML
-soup = BeautifulSoup(r.content, 'html.parser')
-print("HTML content ", soup)
 
-s = soup.find('div', class_='entry-content')
-content = s.find_all('p')
+latest_block = web3.eth.block_number
+print(f"Latest block number: {latest_block}")
 
-print(content)
+peers = web3.eth.getNodeInfo() # need research
+
+print(f"List of connected peers: {peers}")
