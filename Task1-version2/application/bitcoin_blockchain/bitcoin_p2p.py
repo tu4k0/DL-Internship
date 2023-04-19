@@ -7,7 +7,7 @@ import time
 import requests
 
 from application.base_blockchain.base_blockchain import BaseBlockchain
-from application.btc_blockchain.btc_config import *
+from application.bitcoin_blockchain.bitcoin_config import *
 
 
 class BtcBlockchain(BaseBlockchain):
@@ -84,10 +84,10 @@ class BtcBlockchain(BaseBlockchain):
 
         return payload
 
-    def create_getdata_payload(self, block_hash) -> bytes:
-        count = 1
-        type = 1
-        hash = bytearray.fromhex(block_hash)
+    def create_getdata_payload(self) -> bytes:
+        count = 0
+        type = 2
+        hash = bytearray.fromhex(bitcoin_genesis_block_hash)
         payload = struct.pack('<bb32s', count, type, hash)
 
         return payload
@@ -131,7 +131,7 @@ class BtcBlockchain(BaseBlockchain):
     def decode_getheaders_response(self, response) -> str:
         index = str(response).find("getheaders")
         if index == -1:
-            getheaders = self.node.recv(4096)
+            getheaders = self.receive_message()
             index = str(getheaders).find("getheaders")
             header = binascii.hexlify(getheaders)[index + 40:index + 104]
         else:
@@ -141,7 +141,7 @@ class BtcBlockchain(BaseBlockchain):
         block_hash = bytearray.fromhex(block)
         block_hash.reverse()
 
-        return response.hex()
+        return block_hash.hex()
 
     def execute_message(self, command_name: str, payload: list = None):
         if payload is not None:

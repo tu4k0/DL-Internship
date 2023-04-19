@@ -22,3 +22,5 @@ ip_link = 'https://checkip.amazonaws.com'
 btc_version = 70015
 
 block_hash_example = '1dbd981fe6985776b644b173a4d0385ddc1aa2a829688d1e0000000000000000'
+
+bitcoin_genesis_block_hash = '000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8c'
