@@ -43,6 +43,7 @@ def create_version_payload(peer_ip_address):
     start_height = 0
     payload = struct.pack('<LQQ26s26sQ16sL', version, services, timestamp, addr_peer,
                           addr_local, nonce, create_sub_version(), start_height)
+
     return payload
 
 
@@ -68,26 +69,6 @@ def create_message(command, payload):
     message = magic + command + length + check + payload
 
     return message
-
-
-# def getdata_message():
-#     block_hash = '0000000000000000000549a764cc6f1ba850fe694249b87b41c54113e754d1c6'
-#     count = struct.pack("<B", 1)
-#     type = struct.pack("<L", 2)  # type : MSG_BLOCK
-#     hash = struct.pack(">32s", block_hash.encode())  # need fix
-#     inventory = type + hash
-#
-#     payload = count + inventory
-#     return payload
-
-
-# def print_response(command, request_data, response_data):
-#     print("")
-#     print("Command: " + command)
-#     print("Request:")
-#     print(binascii.hexlify(request_data))
-#     print("Response:")
-#     print(response_data)
 
 
 def create_ping_payload() -> bytes:
@@ -141,23 +122,30 @@ if __name__ == '__main__':
     node.recv(constant['buffer_size'])
     response_data = node.recv(constant['buffer_size'])
     result = str(response_data)
-
     index = result.find("getheaders")
     if index == -1:
         getheaders = node.recv(constant['buffer_size'])
         res = str(getheaders)
         index = res.find("getheaders")
-        Block_hash = binascii.hexlify(getheaders)[index+40:index+104]
-        hash = Block_hash.decode("utf-8")
-        response = bytearray.fromhex(hash)
-        response.reverse()
-        print('Bitcoin best block hash: ', response.hex())
+        best_block = binascii.hexlify(getheaders)[index+40:index+104]
+        best_block_hash = best_block.decode("utf-8")
+        best_block_hash = bytearray.fromhex(best_block_hash)
+        best_block_hash.reverse()
+        prev_block_hash = binascii.hexlify(getheaders)[index+104:index+104+64].decode("utf-8")
+        prev_block_hash = bytearray.fromhex(prev_block_hash)
+        prev_block_hash.reverse()
+        print('Bitcoin best block hash: ', best_block_hash.hex())
+        print('Bitcoin previous block hash: ', prev_block_hash.hex())
     else:
-        Block_hash = binascii.hexlify((response_data))[140:204]
-        hash = Block_hash.decode("utf-8")
-        response = bytearray.fromhex(hash)
-        response.reverse()
-        print('Bitcoin best block hash: ', response.hex())
+        best_block = binascii.hexlify(response_data)[140:204]
+        best_block_hash = best_block.decode("utf-8")
+        best_block_hash = bytearray.fromhex(best_block_hash)
+        best_block_hash.reverse()
+        prev_block_hash = binascii.hexlify(response_data)[204:268].decode("utf-8")
+        prev_block_hash = bytearray.fromhex(prev_block_hash)
+        prev_block_hash.reverse()
+        print('Bitcoin best block hash: ', best_block_hash.hex())
+        print('Bitcoin previous block hash: ', prev_block_hash.hex())
 
     print('Retreiving block hash data execution time: ', time.time()-start_time)
 
