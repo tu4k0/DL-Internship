@@ -42,7 +42,7 @@ class BtcBlockchain(BaseBlockchain):
         except Exception:
             return found_peers
 
-    def make_message(self, command, payload):
+    def create_message(self, command, payload):
         magic = bytes.fromhex(btc_magic)
         command = bytes(command, 'utf-8') + (12 - len(command)) * b"\00"
         length = struct.pack("I", len(payload))
@@ -66,7 +66,7 @@ class BtcBlockchain(BaseBlockchain):
 
         return network_address
 
-    def create_version_message(self, node_ip) -> bytes:
+    def create_version_payload(self, node_ip) -> bytes:
         version = 70015
         services = 1
         timestamp = int(time.time())
@@ -79,12 +79,12 @@ class BtcBlockchain(BaseBlockchain):
 
         return payload
 
-    def create_verack_message(self) -> bytearray:
+    def create_verack_payload(self) -> bytearray:
         payload = bytearray.fromhex(verack_message)
 
         return payload
 
-    def create_getdata_message(self, block_hash) -> bytes:
+    def create_getdata_payload(self, block_hash) -> bytes:
         count = 1
         type = 1
         hash = bytearray.fromhex(block_hash)
@@ -92,18 +92,18 @@ class BtcBlockchain(BaseBlockchain):
 
         return payload
 
-    def create_getaddr_message(self) -> bytes:
+    def create_getaddr_payload(self) -> bytes:
         payload = b""
 
         return payload
 
-    def create_ping_message(self) -> bytes:
+    def create_ping_payload(self) -> bytes:
         nonce = random.randint(1, 1 ** 32)
         payload = struct.pack('<Q', nonce)
 
         return payload
 
-    def create_getheaders_message(self, start_block_hash) -> bytes:
+    def create_getheaders_payload(self, start_block_hash) -> bytes:
         version = struct.pack("i", 70015)
         hash_count = struct.pack("<b", 1)
         block_locator_hashes = bytes.fromhex(start_block_hash)
@@ -112,7 +112,7 @@ class BtcBlockchain(BaseBlockchain):
 
         return payload
 
-    def create_getblocks_message(self, start_block_hash, end_block_hash):
+    def create_getblocks_payload(self, start_block_hash, end_block_hash):
         version = struct.pack("i", 70015)
         hash_count = struct.pack("<b", 1)
         hash_stop = bytes.fromhex(end_block_hash)
@@ -121,7 +121,7 @@ class BtcBlockchain(BaseBlockchain):
 
         return payload
 
-    def create_getblock_height_message(self, block_hash):
+    def create_getblock_height_payload(self, block_hash):
         getblock_height_message = f"https://blockstream.info/api/block/{block_hash}"
         response = requests.get(getblock_height_message)
         block_height = response.json()['height']
