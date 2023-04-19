@@ -3,27 +3,36 @@ import time
 import sys
 
 from application.btc_blockchain.btc_blockchain import BtcBlockchain
+from application.btc_blockchain.btc_config import *
 from application.eth_blockchain.eth_blockchain import EthBlockchain
+from application.eth_blockchain.eth_config import *
 from application.statistic.statistic import Statistic
 from application.multithreading.thread import Thread
 
 
 class CLI:
-    session_status: bool
     BTC: BtcBlockchain
     ETH: EthBlockchain
-    node: str
-    cli_arguments: sys.argv
+    cli_arguments: list
 
     def __init__(self):
         self.cli_arguments = sys.argv
 
     def run(self):
-        print(self.cli_arguments[1])
+        node = self.cli_arguments[1].split(':')
+        ip = node[0]
+        port = int(node[1])
+        node_number = int(self.cli_arguments[2])
+        if port == btc_mainnet_port:
+            print("BTC")
+        elif port == eth_mainnet_port:
+            print("Ethereum")
+        else:
+            raise Exception("Invalid port")
 
 
-cli = CLI()
-cli.run()
+
+
 #     def __get_response_by_command(self, blockchain, message_command: str, request):
 #         blockchain.send_message(request)
 #         response = blockchain.receive_message()
