@@ -90,10 +90,53 @@ if __name__ == '__main__':
     response_data = node.recv(constant['buffer_size'])
     response_data = node.recv(constant['buffer_size'])
     response_data = node.recv(constant['buffer_size'])
-    print('Getaddr response', binascii.hexlify(response_data))
-    response_data = node.recv(constant['buffer_size'])
+    print('Getaddr response', response_data)
+    getaddr_response = str(response_data)
+    index = getaddr_response.find("addr")
+    if index != -1:
+        response_data = node.recv(constant['buffer_size'])
+        node_discovery = binascii.hexlify(response_data)[2:]
+        near_nodes = node_discovery[:4].decode("utf-8")
+        near_nodes_amount = bytearray.fromhex(near_nodes)
+        near_nodes_amount.reverse()
+        print('Nearest nodes: ', int(near_nodes_amount.hex(), 16))
+        # best_block_hash = best_block.decode("utf-8")
+        # best_block_hash = bytearray.fromhex(best_block_hash)
+        # best_block_hash.reverse()
+        # prev_block_hash = binascii.hexlify(response_data)[204:268].decode("utf-8")
+        # prev_block_hash = bytearray.fromhex(prev_block_hash)
+        # prev_block_hash.reverse()
+        # print('Bitcoin best block hash: ', best_block_hash.hex())
+        # print('Bitcoin previous block hash: ', prev_block_hash.hex())
+
     print('Getaddr result', binascii.hexlify(response_data))
     Event().wait(0.5)
+
+    if index == -1:
+        getheaders = node.recv(constant['buffer_size'])
+        res = str(getheaders)
+        index = res.find("getheaders")
+        best_block = binascii.hexlify(getheaders)[index + 40:index + 104]
+        best_block_hash = best_block.decode("utf-8")
+        best_block_hash = bytearray.fromhex(best_block_hash)
+        best_block_hash.reverse()
+        prev_block_hash = binascii.hexlify(getheaders)[index + 104:index + 104 + 64].decode("utf-8")
+        prev_block_hash = bytearray.fromhex(prev_block_hash)
+        prev_block_hash.reverse()
+        print('Bitcoin best block hash: ', best_block_hash.hex())
+        print('Bitcoin previous block hash: ', prev_block_hash.hex())
+    else:
+        best_block = binascii.hexlify(response_data)[140:204]
+        best_block_hash = best_block.decode("utf-8")
+        best_block_hash = bytearray.fromhex(best_block_hash)
+        best_block_hash.reverse()
+        prev_block_hash = binascii.hexlify(response_data)[204:268].decode("utf-8")
+        prev_block_hash = bytearray.fromhex(prev_block_hash)
+        prev_block_hash.reverse()
+        print('Bitcoin best block hash: ', best_block_hash.hex())
+        print('Bitcoin previous block hash: ', prev_block_hash.hex())
+
+    print('Retreiving block hash data execution time: ', time.time() - start_time)
 
     node.close()
 
