@@ -7,10 +7,11 @@ import time
 import requests
 
 from application.base_blockchain.base_blockchain import BaseBlockchain
+from application.bitcoin_blockchain.bitcoin_service import BitcoinService
 from application.bitcoin_blockchain.bitcoin_config import *
 
 
-class BtcBlockchain(BaseBlockchain):
+class BitcoinP2P(BitcoinService):
     dns_seeds: list
 
     def __init__(self):
@@ -128,32 +129,18 @@ class BtcBlockchain(BaseBlockchain):
 
         return block_height
 
-    def decode_getheaders_response(self, response) -> str:
-        index = str(response).find("getheaders")
-        if index == -1:
-            getheaders = self.receive_message()
-            index = str(getheaders).find("getheaders")
-            header = binascii.hexlify(getheaders)[index + 40:index + 104]
-        else:
-            header = binascii.hexlify(response)[140:204]
-
-        block = header.decode("utf-8")
-        block_hash = bytearray.fromhex(block)
-        block_hash.reverse()
-
-        return block_hash.hex()
-
-    def execute_message(self, command_name: str, payload: list = None):
-        if payload is not None:
-            request = self.make_message(
-                command_name,
-                getattr(self, f'create_{command_name}_message')(payload)
-            )
-        else:
-            request = self.make_message(command_name, getattr(self, f'create_{command_name}_message')())
-        self.commands.append(command_name)
-        self.requests.update({command_name: request})
-        self.send_message(request)
-        response = self.receive_message()
-        if response is not None and not '':
-            self.responses.update({command_name: response})
+    # Need fix/update/refactor
+    # def execute_message(self, command_name: str, payload: list = None):
+    #     if payload is not None:
+    #         request = self.make_message(
+    #             command_name,
+    #             getattr(self, f'create_{command_name}_message')(payload)
+    #         )
+    #     else:
+    #         request = self.make_message(command_name, getattr(self, f'create_{command_name}_message')())
+    #     self.commands.append(command_name)
+    #     self.requests.update({command_name: request})
+    #     self.send_message(request)
+    #     response = self.receive_message()
+    #     if response is not None and not '':
+    #         self.responses.update({command_name: response})
