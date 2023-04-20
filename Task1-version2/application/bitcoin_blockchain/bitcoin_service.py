@@ -21,5 +21,12 @@ class BitcoinService(BaseBlockchain):
 
         return block_hash.hex()
 
+    def handle_block_height(self, block_hash):
+        block_height_message = f"https://blockstream.info/api/block/{block_hash}"
+        response = requests.get(block_height_message)
+        block_height = response.json()['height']
+
+        return block_height
+
     def handle_getaddr_response(self):
         pass
