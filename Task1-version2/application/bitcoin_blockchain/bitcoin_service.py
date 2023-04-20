@@ -28,5 +28,32 @@ class BitcoinService(BaseBlockchain):
 
         return block_height
 
-    def handle_getaddr_response(self):
-        pass
+    def handle_getaddr_response(self, response, node_number):
+        found_peers = []
+        found_nodes = {}
+        search_index = 0
+        getaddr_index = str(response).find("addr")
+        if getaddr_index != -1:
+            response_data = self.receive_message()[3:]
+            nodes = binascii.hexlify(response_data)
+            node_info_size = 60
+            while len(found_nodes) < node_number:
+                found_peers.append(nodes[:node_info_size])
+                node_index = str(found_peers[search_index]).rfind("ffff")
+                if node_index != -1:
+                    nodes = nodes[node_info_size:]
+                    found = found_peers[search_index][node_index + 2:node_index + 14]
+                    ip_address_hex = found[:8]
+                    port = int(found[8:12], 16)
+                    if port == 8333:
+                        ip_address = ''
+                        for i in range(0, len(ip_address_hex), 2):
+                            ip_address_dec = int(ip_address_hex[i:i + 2], 16)
+                            ip_address += f'{ip_address_dec}.'
+                        search_index += 1
+                        found_nodes.update({ip_address.rstrip('.'): port})
+                    else:
+                        pass
+                else:
+                    nodes = nodes[node_info_size:]
+            return found_nodes
