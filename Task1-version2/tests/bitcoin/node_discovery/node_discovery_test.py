@@ -61,8 +61,44 @@ def create_message(command, payload):
 
     return message
 
+def handle_getaddr_message(response):
+    found_peers = []
+    found_nodes = {}
+    search_index = 0
+    index = str(response).find("addr")
+    if index != -1:
+        response_data = node.recv(constant['buffer_size'])
+        node_discovery = binascii.hexlify(response_data)[2:]
+        near_nodes = node_discovery[:4].decode("utf-8")
+        near_nodes_amount = bytearray.fromhex(near_nodes)
+        near_nodes_amount.reverse()
+        response_data = response_data[3:]
+        nodes = binascii.hexlify(response_data)
+        node_info_size = 60
+        while len(found_nodes) < node_number:
+            found_peers.append(nodes[:node_info_size])
+            node_index = str(found_peers[search_index]).rfind("ffff")
+            if node_index != -1:
+                nodes = nodes[node_info_size:]
+                found = found_peers[search_index][node_index + 2:node_index + 14]
+                ip = found[:8]
+                port = int(found[8:12], 16)
+                if port == 8333:
+                    address = ''
+                    for i in range(0, len(ip), 2):
+                        ip_address = int(ip[i:i + 2], 16)
+                        address += f'{ip_address}.'
+                    search_index += 1
+                    found_nodes.update({address.rstrip('.'): port})
+                else:
+                    pass
+            else:
+                nodes = nodes[node_info_size:]
+        return found_nodes
+
 
 if __name__ == '__main__':
+    node_number = int(input("Enter node number: "))
     start_time = time.time()
 
     # Create Messages
@@ -90,55 +126,9 @@ if __name__ == '__main__':
     response_data = node.recv(constant['buffer_size'])
     response_data = node.recv(constant['buffer_size'])
     response_data = node.recv(constant['buffer_size'])
-    print('Getaddr response', response_data)
-    getaddr_response = str(response_data)
-    index = getaddr_response.find("addr")
-    if index != -1:
-        response_data = node.recv(constant['buffer_size'])
-        node_discovery = binascii.hexlify(response_data)[2:]
-        near_nodes = node_discovery[:4].decode("utf-8")
-        near_nodes_amount = bytearray.fromhex(near_nodes)
-        near_nodes_amount.reverse()
-        print('Nearest nodes: ', int(near_nodes_amount.hex(), 16))
-        # best_block_hash = best_block.decode("utf-8")
-        # best_block_hash = bytearray.fromhex(best_block_hash)
-        # best_block_hash.reverse()
-        # prev_block_hash = binascii.hexlify(response_data)[204:268].decode("utf-8")
-        # prev_block_hash = bytearray.fromhex(prev_block_hash)
-        # prev_block_hash.reverse()
-        # print('Bitcoin best block hash: ', best_block_hash.hex())
-        # print('Bitcoin previous block hash: ', prev_block_hash.hex())
 
-    print('Getaddr result', binascii.hexlify(response_data))
-    Event().wait(0.5)
-
-    if index == -1:
-        getheaders = node.recv(constant['buffer_size'])
-        res = str(getheaders)
-        index = res.find("getheaders")
-        best_block = binascii.hexlify(getheaders)[index + 40:index + 104]
-        best_block_hash = best_block.decode("utf-8")
-        best_block_hash = bytearray.fromhex(best_block_hash)
-        best_block_hash.reverse()
-        prev_block_hash = binascii.hexlify(getheaders)[index + 104:index + 104 + 64].decode("utf-8")
-        prev_block_hash = bytearray.fromhex(prev_block_hash)
-        prev_block_hash.reverse()
-        print('Bitcoin best block hash: ', best_block_hash.hex())
-        print('Bitcoin previous block hash: ', prev_block_hash.hex())
-    else:
-        best_block = binascii.hexlify(response_data)[140:204]
-        best_block_hash = best_block.decode("utf-8")
-        best_block_hash = bytearray.fromhex(best_block_hash)
-        best_block_hash.reverse()
-        prev_block_hash = binascii.hexlify(response_data)[204:268].decode("utf-8")
-        prev_block_hash = bytearray.fromhex(prev_block_hash)
-        prev_block_hash.reverse()
-        print('Bitcoin best block hash: ', best_block_hash.hex())
-        print('Bitcoin previous block hash: ', prev_block_hash.hex())
+    print(handle_getaddr_message(response_data))
 
     print('Retreiving block hash data execution time: ', time.time() - start_time)
 
     node.close()
-
-
-
