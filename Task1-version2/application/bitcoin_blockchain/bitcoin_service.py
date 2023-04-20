@@ -6,20 +6,26 @@ from application.base_blockchain.base_blockchain import BaseBlockchain
 
 class BitcoinService(BaseBlockchain):
 
-    def handle_getheaders_response(self, response) -> str:
+    def handle_getheaders_response(self, response):
         index = str(response).find("getheaders")
         if index == -1:
             getheaders = self.receive_message()
             index = str(getheaders).find("getheaders")
-            header = binascii.hexlify(getheaders)[index + 40:index + 104]
+            best_block = binascii.hexlify(getheaders)[index + 40:index + 104]
+            prev_block_hash = binascii.hexlify(getheaders)[index + 104:index + 104 + 64].decode("utf-8")
         else:
-            header = binascii.hexlify(response)[140:204]
+            best_block = binascii.hexlify(response)[140:204]
+            prev_block_hash = binascii.hexlify(response)[204:268].decode("utf-8")
 
-        block = header.decode("utf-8")
-        block_hash = bytearray.fromhex(block)
-        block_hash.reverse()
+        best_block_hash = best_block.decode("utf-8")
+        best_block_hash = bytearray.fromhex(best_block_hash)
+        best_block_hash.reverse()
+        prev_block_hash = bytearray.fromhex(prev_block_hash)
+        prev_block_hash.reverse()
+        prev_block_hash = bytearray.fromhex(prev_block_hash)
+        prev_block_hash.reverse()
 
-        return block_hash.hex()
+        return best_block_hash.hex(), prev_block_hash.hex()
 
     def handle_block_height(self, block_hash):
         block_height_message = f"https://blockstream.info/api/block/{block_hash}"
