@@ -1,7 +1,7 @@
-from application.bitcoin_blockchain.bitcoin_p2p import BtcBlockchain
+from application.bitcoin_blockchain.bitcoin_p2p import BitcoinP2P
 
 
-class Bitcoin(BtcBlockchain):
+class Bitcoin(BitcoinP2P):
     best_block_hash: str
     best_block_height: int
     previous_block_hash: str
@@ -18,7 +18,7 @@ class Bitcoin(BtcBlockchain):
         pass
 
     def __repr__(self):
-        return list([BtcBlockchain,
+        return list([BitcoinP2P,
                      self.best_block_hash,
                      self.best_block_height,
                      self.previous_block_hash,
