@@ -11,13 +11,13 @@ class BaseBlockchain(ABC):
     node: socket
     ip_address: str
     port: int
-    requests: dict
-    responses: dict
+    requests: int
+    responses: int
     commands: list
 
-    @abstractmethod
     def __init__(self):
-        pass
+        self.requests = 0
+        self.responses = 0
 
     @abstractmethod
     def create_message(self, command, payload) -> bytes or str:
@@ -78,12 +78,14 @@ class BaseBlockchain(ABC):
 
     def send_message(self, message) -> int:
         try:
+            self.requests += 1
             return self.socket.send(message)
         except OSError:
             pass
 
     def receive_message(self) -> bytes:
         try:
+            self.responses += 1
             return self.socket.recv(4096)
         except OSError:
             pass
