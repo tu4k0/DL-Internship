@@ -3,7 +3,7 @@ import requests
 
 from abc import abstractmethod, ABC
 from application.bitcoin_blockchain.bitcoin_config import *
-from application.eth_blockchain.eth_config import *
+from application.ethereum_blockchain.eth_config import *
 
 
 class BaseBlockchain(ABC):
@@ -19,7 +19,6 @@ class BaseBlockchain(ABC):
         self.requests = 0
         self.responses = 0
 
-    @abstractmethod
     def create_message(self, command, payload) -> bytes or str:
         pass
 
@@ -31,7 +30,6 @@ class BaseBlockchain(ABC):
     def create_ping_payload(self):
         pass
 
-    # abstract method
     def decode_response_message(self, response_message):
         pass
 
