@@ -7,18 +7,15 @@ import time
 import requests
 
 from application.base_blockchain.base_blockchain import BaseBlockchain
-from application.bitcoin_blockchain.bitcoin_service import BitcoinService
+from application.bitcoin_blockchain.bitcoin import Bitcoin
 from application.bitcoin_blockchain.bitcoin_config import *
 
 
-class BitcoinP2P(BitcoinService):
+class BitcoinP2P(BaseBlockchain):
     dns_seeds: list
 
     def __init__(self):
-        super().__init__()
-        self.requests = {}
-        self.responses = {}
-        self.commands = []
+        super(BitcoinP2P, self).__init__()
 
     def set_node(self):
         super().set_node()

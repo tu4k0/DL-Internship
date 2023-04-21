@@ -1,31 +1,22 @@
-from application.bitcoin_blockchain.bitcoin_p2p import BitcoinP2P
-
-
 class Bitcoin:
+    ip_address: str
+    port: int
+    node_number: int
     best_block_hash: str
     best_block_height: int
     previous_block_hash: str
     previous_block_height: int
-    node: str
     amount_sent_messages: int
     amount_received_messages: int
     active_connections: int
 
-    def __init__(self, bitcoin: BitcoinP2P):
-        super().__init__()
-        self.bitcoin = bitcoin
-        
-    def __del__(self):
-        pass
+    def __init__(self, ip_address: str, port: int, node_number: int):
+        self.ip_address = ip_address
+        self.port = port
+        self.node_number = node_number
+        self.amount_sent_messages = 0
+        self.amount_received_messages = 0
 
-    def __repr__(self):
-        return list([BitcoinP2P,
-                     self.best_block_hash,
-                     self.best_block_height,
-                     self.previous_block_hash,
-                     self.previous_block_height,
-                     self.node,
-                     self.amount_sent_messages,
-                     self.amount_received_messages,
-                     self.active_connections
-                     ])
+    def delete_bitcoin(self):
+        del self
+
