@@ -30,14 +30,15 @@ class EthereumService:
             self.ethereum_p2p.send_message(best_block_hash_message)
             best_block_response = self.ethereum_p2p.receive_message()
             best_block_hash = self.decode_response_message(best_block_response)['result']['hash']
-            prev_block_hash_payload = self.ethereum_p2p.create_getblock_by_number_payload(best_block_number - 1)
+            prev_block_number = best_block_number - 1
+            prev_block_hash_payload = self.ethereum_p2p.create_getblock_by_number_payload(prev_block_number)
             prev_block_hash_message = self.ethereum_p2p.make_message(prev_block_hash_payload)
             self.ethereum_p2p.send_message(prev_block_hash_message)
             prev_block_hash_response = self.ethereum_p2p.receive_message()
-            prev_block_hash = self.decode_response_message(prev_block_hash_response)['result']['hash']
+            prev_block_hash = best_block_hash
             self.ethereum.best_block_height = best_block_number
             self.ethereum.best_block_hash = best_block_hash
-            self.ethereum.previous_block_height = best_block_number - 1
+            self.ethereum.previous_block_height = prev_block_number
             self.ethereum.previous_block_hash = prev_block_hash
             self.ethereum.amount_sent_messages = self.ethereum_p2p.requests
             self.ethereum.amount_received_messages = self.ethereum_p2p.responses
