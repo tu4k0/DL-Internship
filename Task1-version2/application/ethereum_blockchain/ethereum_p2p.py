@@ -1,9 +1,5 @@
 import csv
 import socket
-import struct
-import time
-import requests
-import rlp
 import json
 
 from application.base_blockchain.base_blockchain import BaseBlockchain
@@ -42,12 +38,12 @@ class EthereumP2P(BaseBlockchain):
 
         return found_peers
 
-    def make_message(self, command, payload):
-        request_command = f"{command} / HTTP/1.1\r\n"
+    def make_message(self, payload):
+        request_method = "POST / HTTP/1.1\r\n"
         host = f"Host: {host_ip}\r\n"
         content_type = f"Content-Type: application/json\r\n"
         content_length = f"Content-Length: {len(json.dumps(payload))}\r\n\r\n{json.dumps(payload)}"
-        message = request_command + host + content_type + content_length
+        message = request_method + host + content_type + content_length
 
         return message.encode('utf-8')
 
@@ -204,21 +200,3 @@ class EthereumP2P(BaseBlockchain):
         }
 
         return net_peer_count_message
-
-    def decode_response_message(self, response):
-        response = response.decode('utf-8')
-        message = {}
-        status = message['status'] = response[9:15]
-        type = message['type'] = response[43:47]
-        length = message.update(length=len(response))
-        body_start = response.find('{')
-        if 'transactions' in response:
-            body_end = response.rfind('transactions')
-            response = response[body_start:body_end - 2] + '}' + '}'
-            message.update(result=json.loads(response)['result'])
-        else:
-            body_end = response.rfind('}')
-            message.update(result=json.loads(response[body_start:body_end + 1])['result'])
-
-        return message
-
