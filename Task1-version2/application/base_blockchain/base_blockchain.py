@@ -2,7 +2,7 @@ import socket
 import requests
 
 from abc import abstractmethod, ABC
-from application.btc_blockchain.btc_config import *
+from application.bitcoin_blockchain.bitcoin_config import *
 from application.eth_blockchain.eth_config import *
 
 
@@ -20,18 +20,18 @@ class BaseBlockchain(ABC):
         pass
 
     @abstractmethod
-    def make_message(self, command, payload) -> bytes or str:
+    def create_message(self, command, payload) -> bytes or str:
         pass
 
     @abstractmethod
-    def create_getdata_message(self, tx_id):
+    def create_getdata_payload(self):
         pass
 
     @abstractmethod
-    def create_ping_message(self):
+    def create_ping_payload(self):
         pass
 
-    @abstractmethod
+    # abstract method
     def decode_response_message(self, response_message):
         pass
 

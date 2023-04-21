@@ -1,7 +1,7 @@
 from application.bitcoin_blockchain.bitcoin_p2p import BitcoinP2P
 
 
-class Bitcoin(BitcoinP2P):
+class Bitcoin:
     best_block_hash: str
     best_block_height: int
     previous_block_hash: str
@@ -11,9 +11,10 @@ class Bitcoin(BitcoinP2P):
     amount_received_messages: int
     active_connections: int
 
-    def __int__(self):
-        pass
-
+    def __init__(self, bitcoin: BitcoinP2P):
+        super().__init__()
+        self.bitcoin = bitcoin
+        
     def __del__(self):
         pass
 

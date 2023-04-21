@@ -22,8 +22,6 @@ class BitcoinService(BaseBlockchain):
         best_block_hash.reverse()
         prev_block_hash = bytearray.fromhex(prev_block_hash)
         prev_block_hash.reverse()
-        prev_block_hash = bytearray.fromhex(prev_block_hash)
-        prev_block_hash.reverse()
 
         return best_block_hash.hex(), prev_block_hash.hex()
 

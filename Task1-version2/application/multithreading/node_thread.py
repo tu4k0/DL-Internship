@@ -1,6 +1,6 @@
 import threading
 
-from application.btc_blockchain.btc_blockchain import BtcBlockchain
+from application.bitcoin_blockchain.bitcoin_p2p import BtcBlockchain
 
 
 class NodeThread(threading.Thread):
