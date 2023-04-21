@@ -7,10 +7,10 @@ import rlp
 import json
 
 from application.base_blockchain.base_blockchain import BaseBlockchain
-from application.eth_blockchain.eth_config import *
+from application.ethereum_blockchain.eth_config import *
 
 
-class EthBlockchain(BaseBlockchain):
+class EthereumP2P(BaseBlockchain):
     ip_address: str
     port: int
     socket: socket
@@ -51,7 +51,7 @@ class EthBlockchain(BaseBlockchain):
 
         return message.encode('utf-8')
 
-    def create_getdata_message(self, tx_id):
+    def create_getdata_payload(self, tx_id):
         command = 'eth_getTransactionByHash'
         tx_getdata_message = {
             'jsonrpc': json_version,
@@ -62,7 +62,7 @@ class EthBlockchain(BaseBlockchain):
 
         return tx_getdata_message
 
-    def create_getblock_by_number_message(self, block_number):
+    def create_getblock_by_number_payload(self, block_number):
         command = 'eth_getBlockByNumber'
         block_number_message = {
             'jsonrpc': json_version,
@@ -73,7 +73,7 @@ class EthBlockchain(BaseBlockchain):
 
         return block_number_message
 
-    def create_getblock_by_hash_message(self, block_hash):
+    def create_getblock_by_hash_payload(self, block_hash):
         command = 'eth_getBlockByHash'
         block_hash_message = {
             'jsonrpc': json_version,
@@ -84,7 +84,7 @@ class EthBlockchain(BaseBlockchain):
 
         return block_hash_message
 
-    def create_getblock_tx_number_message(self, block_number):
+    def create_getblock_tx_number_payload(self, block_number):
         command = 'eth_getBlockTransactionCountByNumber'
         block_tx_number_message = {
             'jsonrpc': json_version,
@@ -95,7 +95,7 @@ class EthBlockchain(BaseBlockchain):
 
         return block_tx_number_message
 
-    def create_get_tx_by_hash_message(self, tx_hash):
+    def create_get_tx_by_hash_payload(self, tx_hash):
         command = 'eth_getTransactionByHash'
         tx_hash_message = {
             'jsonrpc': json_version,
@@ -106,7 +106,7 @@ class EthBlockchain(BaseBlockchain):
 
         return tx_hash_message
 
-    def create_best_block_height_message(self):
+    def create_best_block_height_payload(self):
         command = 'eth_blockNumber'
         best_block_height_message = {
             'jsonrpc': json_version,
@@ -117,7 +117,7 @@ class EthBlockchain(BaseBlockchain):
 
         return best_block_height_message
 
-    def create_getnetwork_message(self):
+    def create_getnetwork_payload(self):
         command = 'eth_chainId'
         network_message = {
             "jsonrpc": json_version,
@@ -128,7 +128,7 @@ class EthBlockchain(BaseBlockchain):
 
         return network_message
 
-    def create_getmining_message(self):
+    def create_getmining_payload(self):
         command = 'eth_mining'
         mining_message = {
             "jsonrpc": json_version,
@@ -139,7 +139,7 @@ class EthBlockchain(BaseBlockchain):
 
         return mining_message
 
-    def create_getbadblocks_message(self):
+    def create_getbadblocks_payload(self):
         command = 'debug_getBadBlocks'
         debug_bad_blocks_message = {
             "jsonrpc": json_version,
@@ -150,7 +150,7 @@ class EthBlockchain(BaseBlockchain):
 
         return debug_bad_blocks_message
 
-    def create_getgasprice_message(self):
+    def create_getgasprice_payload(self):
         command = 'eth_gasPrice'
         gas_price_message = {
             "jsonrpc": json_version,
@@ -161,7 +161,7 @@ class EthBlockchain(BaseBlockchain):
 
         return gas_price_message
 
-    def create_ping_message(self):
+    def create_ping_payload(self):
         command = 'eth_syncing'
         ping_message = {
             'jsonrpc': json_version,
@@ -172,7 +172,7 @@ class EthBlockchain(BaseBlockchain):
 
         return ping_message
 
-    def create_hashrate_message(self):
+    def create_hashrate_payload(self):
         command = 'eth_hashrate'
         hashrate_message = {
             'jsonrpc': json_version,
@@ -183,7 +183,7 @@ class EthBlockchain(BaseBlockchain):
 
         return hashrate_message
 
-    def create_net_listening_message():
+    def create_net_listening_payload(self):
         command = 'net_listening'
         net_listening_message = {
             'jsonrpc': json_version,
@@ -194,7 +194,7 @@ class EthBlockchain(BaseBlockchain):
 
         return net_listening_message
 
-    def create_net_peer_count_message():
+    def create_net_peer_count_payload(self):
         command = 'net_peerCount'
         net_peer_count_message = {
             'jsonrpc': json_version,
@@ -204,12 +204,6 @@ class EthBlockchain(BaseBlockchain):
         }
 
         return net_peer_count_message
-
-    def send_message(self, message) -> int:
-        return self.socket.send(message)
-
-    def receive_message(self) -> bytes:
-        return self.socket.recv(4096)
 
     def decode_response_message(self, response):
         response = response.decode('utf-8')
