@@ -3,7 +3,7 @@ import time
 import json
 
 
-constant = {'peer_ip_address': '183.136.220.19',
+constant = {'peer_ip_address': '51.79.230.241',
              'peer_tcp_port': 8545,
              'buffer_size': 4096}
 
@@ -41,10 +41,13 @@ def handle_node_listening_status(response):
 
 
 def connect_node(node, ip_address, port):
+    node.settimeout(3)
     try:
         node.connect((ip_address, port))
-    except TimeoutError:
+    except Exception as exc:
+        print(f"Exception socket.error : {exc}")
         node.close()
+        exit()
     finally:
         return ip_address
 
