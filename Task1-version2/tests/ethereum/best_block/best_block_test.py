@@ -6,7 +6,7 @@ import rlp
 import json
 
 
-constant = {'peer_ip_address': '183.136.220.19',
+constant = {'peer_ip_address': '118.122.12.3',
              'peer_tcp_port': 8545,
              'buffer_size': 4096}
 
@@ -55,10 +55,10 @@ def decode_response_message(response):
     if 'transactions' in response:
         body_end = response.rfind('transactions')
         response = response[body_start:body_end-2] + '}' + '}'
-        body = message.update(result=json.loads(response)['result'])
+        message.update(result=json.loads(response)['result'])
     else:
         body_end = response.rfind('}')
-        body = message.update(result=json.loads(response[body_start:body_end + 1])['result'])
+        message.update(result=json.loads(response[body_start:body_end + 1])['result'])
 
     return message
 
@@ -77,7 +77,7 @@ if __name__ == '__main__':
     #Send get block number message to ETH node
     node.send(getblock_message)
 
-    #Retreiving response
+    #Retrieving response
     response = node.recv(constant['buffer_size'])
     best_block_number = int(decode_response_message(response)['result'], 16)
 
@@ -92,10 +92,16 @@ if __name__ == '__main__':
     response = node.recv(constant['buffer_size'])
     best_block_hash = decode_response_message(response)['result']['hash']
 
+    # Extract info about previous block
+    prev_block_number = best_block_number - 1
+    prev_block_hash = decode_response_message(response)['result']['parentHash']
+
     #Show statistic
     print('Retrieving Ethereum blockchain data execution time: ', time.time()-start_time)
     print('Best block number: ', best_block_number)
     print('Best block hash: ', best_block_hash)
+    print('Prev block number: ', prev_block_number)
+    print('Prev block hash: ', prev_block_hash)
 
     # Disconnect from node and Close the TCP connection
     node.close()
