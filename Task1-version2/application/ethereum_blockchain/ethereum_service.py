@@ -60,5 +60,10 @@ class EthereumService:
 
         return message
 
+    def get_best_block_hash(self, response):
+        best_block_hash = self.decode_response_message(response)['result']['hash']
+
+        return best_block_hash
+
     def close_session(self):
         self.ethereum_p2p.disconnect_node()
