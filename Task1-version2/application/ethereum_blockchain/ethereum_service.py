@@ -65,6 +65,12 @@ class EthereumService:
 
         return best_block_hash
 
+    def get_best_block_number(self, response):
+        best_block_number = self.decode_response_message(response)['result']
+        best_block_number = int(best_block_number, 16)
+
+        return best_block_number
+
     def get_previous_block_hash(self, response):
         previous_block_hash = self.decode_response_message(response)['result']['parentHash']
 
