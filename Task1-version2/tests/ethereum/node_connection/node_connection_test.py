@@ -32,13 +32,17 @@ def create_net_listening_payload():
 
 
 def handle_node_listening_status(response):
-    response = str(response)
     status = str
-    result_index = response.find("result")
-    if result_index != -1:
-        result = response[result_index+8:]
-        status = result[:result.find("}")]
-    return status
+    if len(response) != 0:
+        response = str(response)
+        result_index = response.find("result")
+        if result_index != -1:
+            result = response[result_index+8:]
+            status = result[:result.find("}")]
+        return status
+    else:
+        status = None
+        return status
 
 
 def connect_node(node, ip_address, port):
@@ -59,6 +63,14 @@ def send_message(node, message):
     except OSError:
         pass
 
+def receive_message(node):
+    response = b''
+    try:
+        response = node.recv(constant['buffer_size'])
+    except OSError:
+        pass
+    finally:
+        return response
 
 if __name__ == '__main__':
     start_time = time.time()
@@ -75,7 +87,7 @@ if __name__ == '__main__':
     send_message(node, listening_message)
 
     #Retreiving response
-    response = node.recv(constant['buffer_size'])
+    response = receive_message(node)
     status = handle_node_listening_status(response)
 
     #Show result
