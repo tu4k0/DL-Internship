@@ -1,4 +1,5 @@
 import socket
+import sys
 import time
 import json
 
@@ -47,9 +48,16 @@ def connect_node(node, ip_address, port):
     except Exception as exc:
         print(f"Exception socket.error : {exc}")
         node.close()
-        exit()
+        sys.exit(1)
     finally:
         return ip_address
+
+
+def send_message(node, message):
+    try:
+        node.send(message)
+    except OSError:
+        pass
 
 
 if __name__ == '__main__':
@@ -64,7 +72,7 @@ if __name__ == '__main__':
     connect_node(node, constant['peer_ip_address'], constant['peer_tcp_port'])
 
     #Send get block number message to ETH node
-    node.send(listening_message)
+    send_message(node, listening_message)
 
     #Retreiving response
     response = node.recv(constant['buffer_size'])
