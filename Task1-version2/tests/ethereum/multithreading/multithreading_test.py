@@ -4,13 +4,79 @@ import sys
 import time
 import json
 
-from collections import Counter
+import threading
+
 amount_sent_messages = 0
 amount_received_messages = 0
 nodes_list = 'C:/Users/Admin/Desktop/Tu4k0/DL-Internship/Task1-version2/application/ethereum_blockchain/ethereum-nodestrackerlist.csv'
 constant = {'peer_ip_address': '183.136.220.19',
-             'peer_tcp_port': 8545,
-             'buffer_size': 4096}
+            'peer_tcp_port': 8545,
+            'buffer_size': 4096}
+
+
+class NodeThread(threading.Thread):
+    lock = threading.RLock()
+    ip: str
+    port: int
+    best_block_numbers = []
+    best_block_hashes = []
+    prev_block_numbers = []
+    prev_block_hashes = []
+    amount_sent_messages = 0
+    amount_received_messages = 0
+
+    def __init__(self, ip, port):
+        threading.Thread.__init__(self)
+        self.ip = ip
+        self.port = port
+
+    def run(self):
+        with self.lock:
+            listening_payload = create_net_listening_payload()
+            listening_message = create_message(listening_payload)
+            best_block_hashes = []
+            best_block_numbers = []
+            prev_block_hashes = []
+            prev_block_numbers = []
+            node = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            connection = connect_node(node, self.ip, self.port)
+            if connection:
+                send_message(node, listening_message)
+                response = receive_message(node)
+                status = handle_node_listening_status(response)
+                if status == True:
+                    best_block_number_payload = create_best_block_height_payload()
+                    best_block_number_message = create_message(best_block_number_payload)
+                    send_message(node, best_block_number_message)
+                    best_block_number_response = receive_message(node)
+                    best_block_number = get_best_block_number(best_block_number_response)
+                    best_block_hash_payload = create_getblock_by_number_payload(best_block_number)
+                    best_block_hash_message = create_message(best_block_hash_payload)
+                    send_message(node, best_block_hash_message)
+                    best_block_hash_response = receive_message(node)
+                    best_block_hash = get_best_block_hash(best_block_hash_response)
+                    self.best_block_hashes.append(best_block_hash)
+                    self.best_block_numbers.append(best_block_number)
+                    self.prev_block_numbers.append(best_block_number - 1)
+                    self.prev_block_hashes.append(get_previous_block_hash(best_block_hash_response))
+                else:
+                    best_block_hash = None
+                    best_block_number = None
+                    prev_block_number = None
+                    prev_block_hash = None
+                    self.best_block_hashes.append(best_block_hash)
+                    self.best_block_numbers.append(best_block_number)
+                    self.prev_block_hashes.append(prev_block_hash)
+                    self.prev_block_numbers.append(prev_block_number)
+                node.close()
+
+    def collect_statistic(self):
+        print("last block:\t", self.best_block_numbers[0], "\thash: ", self.best_block_hashes[0], "nodes: ",
+              self.best_block_hashes.count(self.best_block_hashes[0]))
+        print("previous block:\t", self.prev_block_numbers[0], "\thash: ", self.prev_block_hashes[0], "nodes: ",
+              self.prev_block_hashes.count(self.prev_block_hashes[0]))
+        print("total number of sent messages:\t\t", amount_sent_messages)
+        print("total number of received messages:\t", amount_received_messages)
 
 
 def get_nodes(node_number, ip_address, port):
@@ -84,7 +150,7 @@ def handle_node_listening_status(response):
         response = str(response)
         result_index = response.find("result")
         if result_index != -1:
-            result = response[result_index+8:]
+            result = response[result_index + 8:]
             status = bool(result[:result.find("}")])
         return status
     else:
@@ -152,7 +218,7 @@ def collect_ethereum_data_singlethread(nodes):
                     best_block_hash = get_best_block_hash(best_block_hash_response)
                     best_block_hashes.append(best_block_hash)
                     best_block_numbers.append(best_block_number)
-                    prev_block_numbers.append(best_block_number-1)
+                    prev_block_numbers.append(best_block_number - 1)
                     prev_block_hashes.append(get_previous_block_hash(best_block_hash_response))
                 else:
                     best_block_hash = None
@@ -164,8 +230,10 @@ def collect_ethereum_data_singlethread(nodes):
                     prev_block_hashes.append(prev_block_hash)
                     prev_block_numbers.append(prev_block_number)
                 node.close()
-        print("last block:\t", best_block_numbers[0], "\thash: ", best_block_hashes[0], "nodes: ", best_block_hashes.count(best_block_hashes[0]))
-        print("previous block:\t", prev_block_numbers[0], "\thash: ", prev_block_hashes[0], "nodes: ", prev_block_hashes.count(prev_block_hashes[0]))
+        print("last block:\t", best_block_numbers[0], "\thash: ", best_block_hashes[0], "nodes: ",
+              best_block_hashes.count(best_block_hashes[0]))
+        print("previous block:\t", prev_block_numbers[0], "\thash: ", prev_block_hashes[0], "nodes: ",
+              prev_block_hashes.count(prev_block_hashes[0]))
         print("total number of sent messages:\t\t", amount_sent_messages)
         print("total number of received messages:\t", amount_received_messages)
         print('(singlethread) Retrieving Ethereum blockchain data execution time: ', time.time() - start_time)
@@ -226,4 +294,4 @@ def delete_last_lines(n):
 
 if __name__ == '__main__':
     nodes = get_nodes(5, constant['peer_ip_address'], constant['peer_tcp_port'])
-    collect_ethereum_data_singlethread(nodes)
+    collect_ethereum_data_multithread(nodes)
