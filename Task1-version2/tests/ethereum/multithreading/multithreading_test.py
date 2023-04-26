@@ -313,4 +313,9 @@ def delete_last_lines(n):
 
 if __name__ == '__main__':
     nodes = get_nodes(5, constant['peer_ip_address'], constant['peer_tcp_port'])
+
+    # For singlethreading test
+    collect_ethereum_data_singlethread(nodes)
+
+    # For multithreading test
     collect_ethereum_data_multithread(nodes)
