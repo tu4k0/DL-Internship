@@ -93,7 +93,7 @@ def handle_node_listening_status(response):
 
 
 def connect_node(node, ip_address, port):
-    node.settimeout(1.5)
+    node.settimeout(2)
     try:
         node.connect((ip_address, port))
     except TimeoutError:
@@ -172,21 +172,29 @@ def collect_ethereum_data_singlethread(nodes):
 
 
 def decode_response_message(response):
-    response = response.decode('utf-8')
     message = {}
-    status = message['status'] = response[9:15]
-    type = message['type'] = response[43:47]
-    length = message.update(length=len(response))
-    body_start = response.find('{')
-    if 'transactions' in response:
-        body_end = response.rfind('transactions')
-        response = response[body_start:body_end - 2] + '}' + '}'
-        message.update(result=json.loads(response)['result'])
+    response = response.decode('utf-8')
+    if not response:
+        message.update(result=None)
     else:
-        body_end = response.rfind('}')
-        message.update(result=json.loads(response[body_start:body_end + 1])['result'])
+        status = message['status'] = response[9:15]
+        type = message['type'] = response[43:47]
+        length = message.update(length=len(response))
+        body_start = response.find('{')
+        if 'transactions' in response:
+            body_end = response.rfind('transactions')
+            response = response[body_start:body_end - 2] + '}' + '}'
+            message.update(result=json.loads(response)['result'])
+        else:
+            if response.rfind('parentHash') != -1:
+                body_end = response.rfind('parentHash') + 80
+                response = response[body_start:body_end] + '}' + '}'
+                message.update(result=json.loads(response)['result'])
+            else:
+                body_end = response.rfind('}')
+                message.update(result=json.loads(response[body_start:body_end + 1])['result'])
 
-    return message
+        return message
 
 
 def get_best_block_hash(response):
