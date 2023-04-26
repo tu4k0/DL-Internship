@@ -34,10 +34,6 @@ class NodeThread(threading.Thread):
         with self.lock:
             listening_payload = create_net_listening_payload()
             listening_message = create_message(listening_payload)
-            best_block_hashes = []
-            best_block_numbers = []
-            prev_block_hashes = []
-            prev_block_numbers = []
             node = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             connection = connect_node(node, self.ip, self.port)
             if connection:
@@ -77,6 +73,12 @@ class NodeThread(threading.Thread):
               self.prev_block_hashes.count(self.prev_block_hashes[0]))
         print("total number of sent messages:\t\t", amount_sent_messages)
         print("total number of received messages:\t", amount_received_messages)
+
+    def clear_statistic(self):
+        self.best_block_numbers.clear()
+        self.best_block_hashes.clear()
+        self.prev_block_numbers.clear()
+        self.prev_block_hashes.clear()
 
 
 def get_nodes(node_number, ip_address, port):
@@ -252,6 +254,7 @@ def collect_ethereum_data_multithread(nodes):
         statistic_thread = NodeThread(ip=None, port=None)
         statistic_thread.start()
         statistic_thread.collect_statistic()
+        statistic_thread.clear_statistic()
         statistic_thread.join()
         print('(multithread) Retrieving Ethereum blockchain data execution time: ', time.time() - start_time)
 
