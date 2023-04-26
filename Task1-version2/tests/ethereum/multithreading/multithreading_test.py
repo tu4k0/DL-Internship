@@ -239,6 +239,23 @@ def collect_ethereum_data_singlethread(nodes):
         print('(singlethread) Retrieving Ethereum blockchain data execution time: ', time.time() - start_time)
 
 
+def collect_ethereum_data_multithread(nodes):
+    while True:
+        start_time = time.time()
+        node_threads = []
+        for ip, port in nodes.items():
+            node = NodeThread(ip, port)
+            node.start()
+            node_threads.append(node)
+        for node in node_threads:
+            node.join()
+        statistic_thread = NodeThread(ip=None, port=None)
+        statistic_thread.start()
+        statistic_thread.collect_statistic()
+        statistic_thread.join()
+        print('(multithread) Retrieving Ethereum blockchain data execution time: ', time.time() - start_time)
+
+
 def decode_response_message(response):
     message = {}
     response = response.decode('utf-8')
