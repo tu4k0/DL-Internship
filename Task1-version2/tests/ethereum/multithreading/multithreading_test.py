@@ -31,40 +31,39 @@ class NodeThread(threading.Thread):
         self.port = port
 
     def run(self):
-        with self.lock:
-            listening_payload = create_net_listening_payload()
-            listening_message = create_message(listening_payload)
-            node = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            connection = connect_node(node, self.ip, self.port)
-            if connection:
-                send_message(node, listening_message)
-                response = receive_message(node)
-                status = handle_node_listening_status(response)
-                if status == True:
-                    best_block_number_payload = create_best_block_height_payload()
-                    best_block_number_message = create_message(best_block_number_payload)
-                    send_message(node, best_block_number_message)
-                    best_block_number_response = receive_message(node)
-                    best_block_number = get_best_block_number(best_block_number_response)
-                    best_block_hash_payload = create_getblock_by_number_payload(best_block_number)
-                    best_block_hash_message = create_message(best_block_hash_payload)
-                    send_message(node, best_block_hash_message)
-                    best_block_hash_response = receive_message(node)
-                    best_block_hash = get_best_block_hash(best_block_hash_response)
-                    self.best_block_hashes.append(best_block_hash)
-                    self.best_block_numbers.append(best_block_number)
-                    self.prev_block_numbers.append(best_block_number - 1)
-                    self.prev_block_hashes.append(get_previous_block_hash(best_block_hash_response))
-                else:
-                    best_block_hash = None
-                    best_block_number = None
-                    prev_block_number = None
-                    prev_block_hash = None
-                    self.best_block_hashes.append(best_block_hash)
-                    self.best_block_numbers.append(best_block_number)
-                    self.prev_block_hashes.append(prev_block_hash)
-                    self.prev_block_numbers.append(prev_block_number)
-                node.close()
+        listening_payload = create_net_listening_payload()
+        listening_message = create_message(listening_payload)
+        node = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        connection = connect_node(node, self.ip, self.port)
+        if connection:
+            send_message(node, listening_message)
+            response = receive_message(node)
+            status = handle_node_listening_status(response)
+            if status == True:
+                best_block_number_payload = create_best_block_height_payload()
+                best_block_number_message = create_message(best_block_number_payload)
+                send_message(node, best_block_number_message)
+                best_block_number_response = receive_message(node)
+                best_block_number = get_best_block_number(best_block_number_response)
+                best_block_hash_payload = create_getblock_by_number_payload(best_block_number)
+                best_block_hash_message = create_message(best_block_hash_payload)
+                send_message(node, best_block_hash_message)
+                best_block_hash_response = receive_message(node)
+                best_block_hash = get_best_block_hash(best_block_hash_response)
+                self.best_block_hashes.append(best_block_hash)
+                self.best_block_numbers.append(best_block_number)
+                self.prev_block_numbers.append(best_block_number - 1)
+                self.prev_block_hashes.append(get_previous_block_hash(best_block_hash_response))
+            else:
+                best_block_hash = None
+                best_block_number = None
+                prev_block_number = None
+                prev_block_hash = None
+                self.best_block_hashes.append(best_block_hash)
+                self.best_block_numbers.append(best_block_number)
+                self.prev_block_hashes.append(prev_block_hash)
+                self.prev_block_numbers.append(prev_block_number)
+            node.close()
 
     def collect_statistic(self):
         print("last block:\t", self.best_block_numbers[0], "\thash: ", self.best_block_hashes[0], "nodes: ",
