@@ -1,6 +1,7 @@
 import csv
 import json
 import sys
+import time
 
 from application.ethereum_blockchain.ethereum import Ethereum
 from application.ethereum_blockchain.ethereum_p2p import EthereumP2P
@@ -45,21 +46,41 @@ class EthereumService:
         node_threads = []
         nodes = self.get_nodes()
         while True:
+            start_time = time.time()
             for ip, port in nodes.items():
-                node_thread = EthereumNodeThread(ip, port, self.ethereum, self.ethereum_p2p)
-                node_thread.start()
-                node_threads.append(node_thread)
-            # for node in node_threads:
-                node_thread.join()
+                node = EthereumNodeThread(ip, port, self.ethereum, self.ethereum_p2p)
+                node.start()
+                node_threads.append(node)
+            for node in node_threads:
+                node.join()
+            self.ethereum.amount_sent_messages = self.ethereum_p2p.requests
+            self.ethereum.amount_received_messages = self.ethereum_p2p.responses
             self.print_blockchain_info()
             self.clear_statistic()
 
     def print_blockchain_info(self):
+        last_block_number = None
+        last_block_hash = None
+        prev_block_height = None
+        prev_block_hash = None
         print("active connections:\t", self.ethereum.active_connections)
-        print("last block:\t", self.ethereum.best_block_numbers[0], "\thash: ",
-              self.ethereum.best_block_hashes[0], "nodes: ", self.ethereum.best_block_hashes.count(self.ethereum.best_block_hashes[0]))
-        print("previous block:\t", self.ethereum.prev_block_numbers[0], "\thash: ",
-              self.ethereum.prev_block_hashes[0], "nodes: ", self.ethereum.prev_block_hashes.count(self.ethereum.prev_block_hashes[0]))
+        for bbn in self.ethereum.best_block_numbers:
+            if bbn is not None:
+                last_block_number = bbn
+        for bbh in self.ethereum.best_block_hashes:
+            if bbh is not None:
+                last_block_hash = bbh
+        print("last block:\t", last_block_number, "\thash: ",
+              last_block_hash, "nodes: ", self.ethereum.best_block_hashes.count(last_block_hash))
+        for pbn in self.ethereum.prev_block_numbers:
+            if pbn is not None:
+                prev_block_height = pbn
+        for pbh in self.ethereum.prev_block_hashes:
+            if pbh is not None:
+                prev_block_hash = pbh
+        print("previous block:\t", prev_block_height, "\thash: ",
+              prev_block_hash, "nodes: ",
+              self.ethereum.prev_block_hashes.count(prev_block_hash))
         print("total number of sent messages:\t\t", self.ethereum.amount_sent_messages)
         print("total number of received messages:\t", self.ethereum.amount_received_messages)
 
