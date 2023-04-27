@@ -38,7 +38,7 @@ class EthereumP2P(BaseBlockchain):
 
         return found_peers
 
-    def make_message(self, payload):
+    def create_message(self, payload):
         request_method = "POST / HTTP/1.1\r\n"
         host = f"Host: {host_ip}\r\n"
         content_type = f"Content-Type: application/json\r\n"
