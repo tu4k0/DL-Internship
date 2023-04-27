@@ -1,21 +1,22 @@
 class Ethereum:
     ip_address: str
     port: int
-    node_number: int
-    best_block_hash: str
-    best_block_height: int
-    previous_block_hash: str
-    previous_block_height: int
+    best_block_hashes: list
+    best_block_numbers: list
+    prev_block_hashes: list
+    prev_block_numbers: list
     amount_sent_messages: int
     amount_received_messages: int
     active_connections: int
 
-    def __init__(self, ip_address: str, port: int, node_number: int):
-        self.ip_address = ip_address
-        self.port = port
-        self.node_number = node_number
+    def __init__(self):
         self.amount_sent_messages = 0
         self.amount_received_messages = 0
+        self.best_block_hashes = []
+        self.best_block_numbers = []
+        self.prev_block_hashes = []
+        self.prev_block_numbers = []
+        self.active_connections = 0
 
     def delete_ethereum(self):
         del self
