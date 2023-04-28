@@ -4,12 +4,12 @@ import random
 import socket
 import struct
 import time
-from threading import Event
+import ipaddress
 
 constant = {'magic_value': 0xd9b4bef9,
-             'peer_ip_address': '100.36.127.250',
-             'peer_tcp_port': 8333,
-             'buffer_size': 4096}
+            'peer_ip_address': '148.251.152.118',
+            'peer_tcp_port': 8333,
+            'buffer_size': 4096}
 
 
 def create_sub_version():
@@ -23,6 +23,7 @@ def create_network_address(ip_address, port):
                                   bytearray.fromhex("00000000000000000000ffff") + socket.inet_aton(ip_address), port)
 
     return network_address
+
 
 def create_version_payload(peer_ip_address):
     version = 70015
@@ -61,40 +62,29 @@ def create_message(command, payload):
 
     return message
 
-def handle_getaddr_message(response):
-    found_peers = []
+
+def handle_getaddr_message(node, response):
     found_nodes = {}
-    search_index = 0
-    index = str(response).find("addr")
-    if index != -1:
-        response_data = node.recv(constant['buffer_size'])
-        node_discovery = binascii.hexlify(response_data)[2:]
-        near_nodes = node_discovery[:4].decode("utf-8")
-        near_nodes_amount = bytearray.fromhex(near_nodes)
-        near_nodes_amount.reverse()
-        response_data = response_data[3:]
-        nodes = binascii.hexlify(response_data)
-        node_info_size = 60
-        while len(found_nodes) < node_number:
-            found_peers.append(nodes[:node_info_size])
-            node_index = str(found_peers[search_index]).rfind("ffff")
-            if node_index != -1:
-                nodes = nodes[node_info_size:]
-                found = found_peers[search_index][node_index + 2:node_index + 14]
-                ip = found[:8]
-                port = int(found[8:12], 16)
-                if port == 8333:
-                    address = ''
-                    for i in range(0, len(ip), 2):
-                        ip_address = int(ip[i:i + 2], 16)
-                        address += f'{ip_address}.'
-                    search_index += 1
-                    found_nodes.update({address.rstrip('.'): port})
-                else:
-                    pass
-            else:
-                nodes = nodes[node_info_size:]
-        return found_nodes
+    response_data = node.recv(constant['buffer_size'])
+    response_data += node.recv(constant['buffer_size'])
+    node_discovery = binascii.hexlify(response_data)[2:]
+    near_nodes = node_discovery[:4].decode("utf-8")
+    near_nodes_amount = bytearray.fromhex(near_nodes)
+    near_nodes_amount.reverse()
+    node_info_size = 12
+    response_data = response_data[3:]
+    while len(found_nodes) < node_number:
+        node = binascii.hexlify(response_data[node_info_size:node_info_size + 16])
+        if str(node).find('ffff') == -1:
+            peer = ipaddress.IPv6Address(bytes(response_data[node_info_size:node_info_size + 16]))
+            node_info_size += 30
+        else:
+            peer = str(ipaddress.IPv6Address(bytes(response_data[node_info_size:node_info_size + 16])).ipv4_mapped)
+            port = binascii.hexlify(response_data[node_info_size + 16:node_info_size + 18])
+            if int(port, 16) == 8333:
+                found_nodes.update({peer: 8333})
+            node_info_size += 30
+    return found_nodes
 
 
 if __name__ == '__main__':
@@ -107,7 +97,6 @@ if __name__ == '__main__':
     verack_message = create_verack_payload()
     getaddr_payload = create_getaddr_payload()
     getaddr_message = create_message('getaddr', getaddr_payload)
-
 
     # Establish Node TCP Connection
     node = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -123,12 +112,14 @@ if __name__ == '__main__':
 
     # Send message "getaddr"
     node.send(getaddr_message)
-    response_data = node.recv(constant['buffer_size'])
-    response_data = node.recv(constant['buffer_size'])
-    response_data = node.recv(constant['buffer_size'])
+    while True:
+        if str(response_data).find('addr') != -1:
+            found_peers = handle_getaddr_message(node, response_data)
+            break
+        else:
+            response_data = node.recv(constant['buffer_size'])
 
-    print(handle_getaddr_message(response_data))
-
+    print(found_peers)
     print('Retreiving block hash data execution time: ', time.time() - start_time)
 
     node.close()
