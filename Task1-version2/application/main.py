@@ -1,5 +1,11 @@
+import sys
+
 from application.application.app import CLI
 
 if __name__ == "__main__":
-    cli = CLI()
-    cli.run()
+    try:
+        cli = CLI()
+        cli.run()
+    except KeyboardInterrupt:
+        sys.exit('Stop collecting info')
+
