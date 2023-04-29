@@ -6,7 +6,7 @@ import struct
 import time
 
 constant = {'magic_value': 0xd9b4bef9,
-             'peer_ip_address': '100.36.127.250',
+             'peer_ip_address': '184.74.240.157',
              'peer_tcp_port': 8333,
              'buffer_size': 4096}
 
@@ -95,6 +95,21 @@ def create_getblocks_payload():
     return payload
 
 
+def handle_getheaders_message(node, response_data):
+    getheaders = binascii.hexlify(response_data)
+    getheaders_index = str(getheaders).find('676574686561646572730000')
+    if len(getheaders[getheaders_index-2:]) == 40:
+        response_data += node.recv(constant['buffer_size'])
+    print(response_data)
+    # best_block = binascii.hexlify(response_data)[140:204]
+    # best_block_hash = best_block.decode("utf-8")
+    # best_block_hash = bytearray.fromhex(best_block_hash)
+    # best_block_hash.reverse()
+    # prev_block_hash = binascii.hexlify(response_data)[204:268].decode("utf-8")
+    # prev_block_hash = bytearray.fromhex(prev_block_hash)
+    # prev_block_hash.reverse()
+    return 1, 2
+
 if __name__ == '__main__':
     start_time = time.time()
 
@@ -119,33 +134,13 @@ if __name__ == '__main__':
 
     # Send message "getdata"
     node.send(getdata_message)
-    node.recv(constant['buffer_size'])
-    response_data = node.recv(constant['buffer_size'])
-    result = str(response_data)
-    index = result.find("getheaders")
-    if index == -1:
-        getheaders = node.recv(constant['buffer_size'])
-        res = str(getheaders)
-        index = res.find("getheaders")
-        best_block = binascii.hexlify(getheaders)[index+40:index+104]
-        best_block_hash = best_block.decode("utf-8")
-        best_block_hash = bytearray.fromhex(best_block_hash)
-        best_block_hash.reverse()
-        prev_block_hash = binascii.hexlify(getheaders)[index+104:index+104+64].decode("utf-8")
-        prev_block_hash = bytearray.fromhex(prev_block_hash)
-        prev_block_hash.reverse()
-        print('Bitcoin best block hash: ', best_block_hash.hex())
-        print('Bitcoin previous block hash: ', prev_block_hash.hex())
-    else:
-        best_block = binascii.hexlify(response_data)[140:204]
-        best_block_hash = best_block.decode("utf-8")
-        best_block_hash = bytearray.fromhex(best_block_hash)
-        best_block_hash.reverse()
-        prev_block_hash = binascii.hexlify(response_data)[204:268].decode("utf-8")
-        prev_block_hash = bytearray.fromhex(prev_block_hash)
-        prev_block_hash.reverse()
-        print('Bitcoin best block hash: ', best_block_hash.hex())
-        print('Bitcoin previous block hash: ', prev_block_hash.hex())
+
+    while True:
+        if str(response_data).find('getheaders') != -1:
+            best_block_hash, prev_block_hash = handle_getheaders_message(node, response_data)
+            break
+        else:
+            response_data = node.recv(constant['buffer_size'])
 
     print('Retreiving block hash data execution time: ', time.time()-start_time)
 
