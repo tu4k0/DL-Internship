@@ -6,7 +6,7 @@ import struct
 import time
 
 constant = {'magic_value': 0xd9b4bef9,
-             'peer_ip_address': '184.74.240.157',
+             'peer_ip_address': '173.79.138.165',
              'peer_tcp_port': 8333,
              'buffer_size': 4096}
 
@@ -100,15 +100,22 @@ def handle_getheaders_message(node, response_data):
     getheaders_index = str(getheaders).find('676574686561646572730000')
     if len(getheaders[getheaders_index-2:]) == 40:
         response_data += node.recv(constant['buffer_size'])
-    print(response_data)
-    # best_block = binascii.hexlify(response_data)[140:204]
-    # best_block_hash = best_block.decode("utf-8")
-    # best_block_hash = bytearray.fromhex(best_block_hash)
-    # best_block_hash.reverse()
-    # prev_block_hash = binascii.hexlify(response_data)[204:268].decode("utf-8")
-    # prev_block_hash = bytearray.fromhex(prev_block_hash)
-    # prev_block_hash.reverse()
-    return 1, 2
+    info = binascii.hexlify(response_data)
+    index = str(info).find('676574686561646572730000')
+    starting_hash = str(info)[index+50:]
+    block_hash_size = 64
+    block_hashes = []
+    start_hash_index = 0
+    for i in range(1,3):
+        block_hashes.append(starting_hash[start_hash_index:block_hash_size])
+        start_hash_index += 64
+        block_hash_size += 64
+    best_block_hash = bytearray.fromhex(block_hashes[0])
+    best_block_hash.reverse()
+    prev_block_hash = bytearray.fromhex(block_hashes[1])
+    prev_block_hash.reverse()
+    return best_block_hash.hex(), prev_block_hash.hex()
+
 
 if __name__ == '__main__':
     start_time = time.time()
@@ -142,6 +149,8 @@ if __name__ == '__main__':
         else:
             response_data = node.recv(constant['buffer_size'])
 
+    print('Best block hash: ', best_block_hash)
+    print('Prev block hash: ', prev_block_hash)
     print('Retreiving block hash data execution time: ', time.time()-start_time)
 
     # Disconnect from node and Close the TCP connection
