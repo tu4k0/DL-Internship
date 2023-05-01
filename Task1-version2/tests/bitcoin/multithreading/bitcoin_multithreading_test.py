@@ -15,7 +15,7 @@ import requests
 amount_sent_messages = 0
 amount_received_messages = 0
 constant = {'magic_value': 0xd9b4bef9,
-            'peer_ip_address': '156.245.20.1',
+            'peer_ip_address': '195.189.96.125',
             'peer_tcp_port': 8333,
             'buffer_size': 4096}
 
@@ -26,6 +26,7 @@ def set_socket() -> socket.socket:
         return node
     else:
         raise Exception('Failed to set socket')
+
 
 def connect_node(node, ip_address, port):
     node.settimeout(2)
@@ -62,72 +63,73 @@ def receive_message(node):
         return response
 
 
-# class NodeThread(threading.Thread):
-#     lock = threading.RLock()
-#     ip: str
-#     port: int
-#     best_block_numbers = []
-#     best_block_hashes = []
-#     prev_block_numbers = []
-#     prev_block_hashes = []
-#     amount_sent_messages = 0
-#     amount_received_messages = 0
-#
-#     def __init__(self, ip, port, ethereum_p2p: Blockchain):
-#         threading.Thread.__init__(self)
-#         self.ip = ip
-#         self.port = port
-#         self.name = ip
-#         self.ethereum_p2p = ethereum_p2p
-#
-#     def run(self):
-#         listening_payload = create_net_listening_payload()
-#         listening_message = create_message(listening_payload)
-#         node = self.ethereum_p2p.set_socket()
-#         connection = self.ethereum_p2p.connect_node(node, self.ip, self.port)
-#         if connection:
-#             self.ethereum_p2p.send_message(node, listening_message)
-#             response = self.ethereum_p2p.receive_message(node)
-#             status = handle_node_listening_status(response)
-#             if status == True:
-#                 best_block_number_payload = create_best_block_height_payload()
-#                 best_block_number_message = create_message(best_block_number_payload)
-#                 self.ethereum_p2p.send_message(node, best_block_number_message)
-#                 best_block_number_response = self.ethereum_p2p.receive_message(node)
-#                 best_block_number = get_best_block_number(best_block_number_response)
-#                 best_block_hash_payload = create_getblock_by_number_payload(best_block_number)
-#                 best_block_hash_message = create_message(best_block_hash_payload)
-#                 self.ethereum_p2p.send_message(node, best_block_hash_message)
-#                 best_block_hash_response = self.ethereum_p2p.receive_message(node)
-#                 best_block_hash = get_best_block_hash(best_block_hash_response)
-#                 self.best_block_hashes.append(best_block_hash)
-#                 self.best_block_numbers.append(best_block_number)
-#                 self.prev_block_numbers.append(best_block_number - 1)
-#                 self.prev_block_hashes.append(get_previous_block_hash(best_block_hash_response))
-#             else:
-#                 best_block_hash = None
-#                 best_block_number = None
-#                 prev_block_number = None
-#                 prev_block_hash = None
-#                 self.best_block_hashes.append(best_block_hash)
-#                 self.best_block_numbers.append(best_block_number)
-#                 self.prev_block_hashes.append(prev_block_hash)
-#                 self.prev_block_numbers.append(prev_block_number)
-#             node.close()
-#
-#     def collect_statistic(self):
-#         print("last block:\t", self.best_block_numbers[0], "\thash: ", self.best_block_hashes[0], "nodes: ",
-#               self.best_block_hashes.count(self.best_block_hashes[0]))
-#         print("previous block:\t", self.prev_block_numbers[0], "\thash: ", self.prev_block_hashes[0], "nodes: ",
-#               self.prev_block_hashes.count(self.prev_block_hashes[0]))
-#         print("total number of sent messages:\t\t", amount_sent_messages)
-#         print("total number of received messages:\t", amount_received_messages)
-#
-#     def clear_statistic(self):
-#         self.best_block_numbers.clear()
-#         self.best_block_hashes.clear()
-#         self.prev_block_numbers.clear()
-#         self.prev_block_hashes.clear()
+class NodeThread(threading.Thread):
+    lock = threading.RLock()
+    ip: str
+    port: int
+    best_block_numbers = []
+    best_block_hashes = []
+    prev_block_numbers = []
+    prev_block_hashes = []
+    amount_sent_messages = 0
+    amount_received_messages = 0
+
+    def __init__(self, ip, port):
+        threading.Thread.__init__(self)
+        self.ip = ip
+        self.port = port
+        self.name = ip
+
+    def run(self):
+        node = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        connection = connect_node(node, self.ip, self.port)
+        if connection:
+            version_payload = create_version_payload(constant['peer_ip_address'])
+            version_message = create_message('version', version_payload)
+            verack_message = create_verack_payload()
+            getdata_payload = create_getdata_payload()
+            getdata_message = create_message('getdata', getdata_payload)
+            send_message(node, version_message)
+            version_response = receive_message(node)
+            if not version_response:
+                best_block_hash = None
+                best_block_number = None
+                prev_block_number = None
+                prev_block_hash = None
+                self.best_block_hashes.append(best_block_hash)
+                self.best_block_numbers.append(best_block_number)
+                self.prev_block_hashes.append(prev_block_hash)
+                self.prev_block_numbers.append(prev_block_number)
+                node.close()
+            else:
+                send_message(node, verack_message)
+                response_data = receive_message(node)
+                send_message(node, getdata_message)
+                while True:
+                    if str(response_data).find('getheaders') != -1:
+                        best_block_hash, prev_block_hash = handle_getheaders_message(node, response_data)
+                        break
+                    else:
+                        response_data = receive_message(node)
+                best_block_number = get_best_block_height(best_block_hash)
+                self.best_block_hashes.append(best_block_hash)
+                self.best_block_numbers.append(best_block_number)
+                self.prev_block_numbers.append(best_block_number - 1)
+                self.prev_block_hashes.append(prev_block_hash)
+
+    def collect_statistic(self):
+        print("last block:\t", self.best_block_numbers[0], "\thash: ", self.best_block_hashes[0], "nodes: ",
+              self.best_block_hashes.count(self.best_block_hashes[0]))
+        print("previous block:\t", self.prev_block_numbers[0], "\thash: ", self.prev_block_hashes[0], "nodes: ",
+              self.prev_block_hashes.count(self.prev_block_hashes[0]))
+        print("total number of sent messages:\t\t", amount_sent_messages)
+        print("total number of received messages:\t", amount_received_messages)
+
+    def clear_statistic(self):
+        self.best_block_numbers.clear()
+        self.best_block_hashes.clear()
+        self.prev_block_numbers.clear()
+        self.prev_block_hashes.clear()
 
 
 def get_nodes(node, response_data, node_number, ip, port):
@@ -319,25 +321,48 @@ def collect_bitcoin_data_singlethread():
               prev_block_hashes.count(prev_block_hashes[0]))
         print("total number of sent messages:\t\t", amount_sent_messages)
         print("total number of received messages:\t", amount_received_messages)
-        print('(singlethread) Retrieving Ethereum blockchain data execution time: ', time.time() - start_time)
+        print('(singlethread) Retrieving Bitcoin blockchain data execution time: ', time.time() - start_time)
 
 
-def collect_bitcoin_data_multithread(nodes, ethereum_p2p):
+def collect_bitcoin_data_multithread():
+    found_peers = {}
+    version_payload = create_version_payload(constant['peer_ip_address'])
+    version_message = create_message('version', version_payload)
+    verack_message = create_verack_payload()
+    getaddr_payload = create_getaddr_payload()
+    getaddr_message = create_message('getaddr', getaddr_payload)
+    node = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    connection = connect_node(node, constant['peer_ip_address'], constant['peer_tcp_port'])
+    if connection:
+        send_message(node, version_message)
+        version_response = receive_message(node)
+        if not version_response:
+            sys.exit('Node not responding')
+        send_message(node, verack_message)
+        response_data = receive_message(node)
+        send_message(node, getaddr_message)
+        while True:
+            if str(response_data).find('addr') != -1:
+                found_peers = get_nodes(node, response_data, 3, constant['peer_ip_address'], constant['peer_tcp_port'])
+                break
+            else:
+                response_data = receive_message(node)
+        node.close()
     while True:
         start_time = time.time()
         node_threads = []
-        for ip, port in nodes.items():
-            node = NodeThread(ip, port, ethereum_p2p)
+        for ip, port in found_peers.items():
+            node = NodeThread(ip, port)
             node.start()
             node_threads.append(node)
         for node in node_threads:
             node.join()
-        statistic_thread = NodeThread(None, None, ethereum_p2p)
+        statistic_thread = NodeThread(None, None)
         statistic_thread.start()
         statistic_thread.collect_statistic()
         statistic_thread.clear_statistic()
         statistic_thread.join()
-        print('(multithread) Retrieving Ethereum blockchain data execution time: ', time.time() - start_time)
+        print('(multithread) Retrieving Bitcoin blockchain data execution time: ', time.time() - start_time)
 
 
 def handle_getheaders_message(node, response_data):
@@ -372,8 +397,8 @@ def delete_last_lines(n):
 
 if __name__ == '__main__':
     # For singlethreading test
-    collect_bitcoin_data_singlethread()
+    # collect_bitcoin_data_singlethread()
 
     # For multithreading test
-    # TODO
+    collect_bitcoin_data_multithread()
 
