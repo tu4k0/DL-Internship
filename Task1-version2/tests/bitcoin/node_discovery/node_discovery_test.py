@@ -7,7 +7,7 @@ import time
 import ipaddress
 
 constant = {'magic_value': 0xd9b4bef9,
-            'peer_ip_address': '148.251.152.118',
+            'peer_ip_address': '156.245.20.1',
             'peer_tcp_port': 8333,
             'buffer_size': 4096}
 
@@ -63,16 +63,17 @@ def create_message(command, payload):
     return message
 
 
-def handle_getaddr_message(node, response):
+def handle_getaddr_message(node, response_data):
     found_nodes = {}
-    response_data = node.recv(constant['buffer_size'])
-    response_data += node.recv(constant['buffer_size'])
-    node_discovery = binascii.hexlify(response_data)[2:]
-    near_nodes = node_discovery[:4].decode("utf-8")
-    near_nodes_amount = bytearray.fromhex(near_nodes)
-    near_nodes_amount.reverse()
+    getaddr = binascii.hexlify(response_data)
+    getaddr_index = str(getaddr).find('616464720000000000000000')
+    if len(getaddr[getaddr_index - 2:]) == 40:
+        response_data += node.recv(constant['buffer_size'])
+    node_discovery = binascii.hexlify(response_data)
+    index = str(node_discovery).find('616464720000000000000000')
     node_info_size = 12
-    response_data = response_data[3:]
+    adresses = node_discovery[index+44:]
+    response_data = response_data[27:]
     while len(found_nodes) < node_number:
         node = binascii.hexlify(response_data[node_info_size:node_info_size + 16])
         if str(node).find('ffff') == -1:
@@ -88,7 +89,7 @@ def handle_getaddr_message(node, response):
 
 
 if __name__ == '__main__':
-    node_number = int(input("Enter node number: "))
+    node_number = 5
     start_time = time.time()
 
     # Create Messages
