@@ -17,7 +17,3 @@ class Ethereum:
         self.prev_block_hashes = []
         self.prev_block_numbers = []
         self.active_connections = 0
-
-    def delete_ethereum(self):
-        del self
-
