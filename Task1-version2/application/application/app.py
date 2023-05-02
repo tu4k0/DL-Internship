@@ -13,10 +13,10 @@ class CLI:
         self.cli_arguments = sys.argv
 
     def run(self):
-        node = '183.136.220.19:8545'.split(':')  # self.cli_arguments[1].split(':')
+        node = self.cli_arguments[1].split(':')
         ip_address = node[0]
         port = int(node[1])
-        node_number = 5  # int(self.cli_arguments[2])
+        node_number = int(self.cli_arguments[2])
         user_request = [ip_address, port, node_number]
         if port == btc_mainnet_port:
             bitcoin_controller = BitcoinController(user_request)
