@@ -19,9 +19,6 @@ class BaseBlockchain(ABC):
         self.requests = 0
         self.responses = 0
 
-    def create_message(self, command, payload) -> bytes or str:
-        pass
-
     @abstractmethod
     def create_getdata_payload(self):
         pass
@@ -61,36 +58,31 @@ class BaseBlockchain(ABC):
                     break
                 return data
 
-    def connect_node(self, ip_address, port) -> str:
-        self.ip_address = str(ip_address)
-        self.port = int(port)
+    def connect_node(self, node, ip_address, port) -> str:
+        node.settimeout(2)
         try:
-            self.socket.connect((self.ip_address, self.port))
+            node.connect((ip_address, port))
         except TimeoutError:
-            self.socket.close()
+            node.close()
         finally:
-            return self.ip_address
+            return ip_address
 
-    def disconnect_node(self) -> None:
-        self.socket.close()
+    def disconnect_node(self, node) -> None:
+        node.close()
 
-    def send_message(self, message) -> int:
+    def send_message(self, node, message):
         try:
+            node.send(message)
             self.requests += 1
-            return self.socket.send(message)
         except OSError:
             pass
 
-    def receive_message(self) -> bytes:
+    def receive_message(self, node):
+        response = b''
         try:
+            response = node.recv(4096)
             self.responses += 1
-            return self.socket.recv(4096)
         except OSError:
             pass
-
-    def print_response(self, command, request_message, response_message) -> None:
-        print(f"Message: {command}")
-        print("Request:")
-        print(request_message)
-        print("Response:")
-        print(response_message)
+        finally:
+            return response
