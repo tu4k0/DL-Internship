@@ -33,8 +33,8 @@ class BitcoinStatistic(BaseStatistic):
                 break
         print("previous block:\t", prev_block_height, "\thash: ", prev_block_hash, "nodes: ",
               self.blockchain.prev_block_hashes.count(prev_block_hash))
-        print("total number of sent messages:\t\t", self.get_amount_sent_messages())
-        print("total number of received messages:\t", self.get_amount_received_messages())
+        print("total number of sent messages:\t\t", self.get_amount_sent_messages)
+        print("total number of received messages:\t", self.get_amount_received_messages)
 
     def clear_statistic(self):
         self.blockchain.best_block_numbers.clear()

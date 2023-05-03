@@ -1,4 +1,4 @@
-dns_seeds = [
+DNS_SEEDS = [
     ("seed.bitcoin.sipa.be", 8333),
     ("dnsseed.bluematt.me", 8333),
     ("dnsseed.bitcoin.dashjr.org", 8333),
@@ -7,20 +7,22 @@ dns_seeds = [
     ("bitseed.xf2.org", 8333),
 ]
 
-btc_mainnet_port = 8333
+BITCOIN_MAINNET = 8333
 
-btc_magic = 'F9BEB4D9'
+BITCOIN_MAINNET_MAGIC = 'F9BEB4D9'
 
-host = "192.168.0.100"
+HOST = "192.168.0.100"
 
-verack_message = "f9beb4d976657261636b000000000000000000005df6e0e2"
+BITCOIN_USER_AGENT = "/Satoshi:0.24.1/"
 
-block_header_hash = "8C2ACBC70D503FDC36787AC0EE0916D4C504DD1624AA05000000000000000000"
+BITCOIN_MAINNET_VERSION = 70015
 
-ip_link = 'https://checkip.amazonaws.com'
+BITCOIN_GENESIS_BLOCK = '000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f'
 
-btc_version = 70015
+BITCOIN_IPV4_SUBNET = "00000000000000000000ffff"
 
-block_hash_example = '1dbd981fe6985776b644b173a4d0385ddc1aa2a829688d1e0000000000000000'
+BITCOIN_DEFAULT_CHECKSUM = b"\x5d\xf6\xe0\xe2"
 
-bitcoin_genesis_block_hash = '000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8c'
+BITCOIN_GETADDR_COMMAND_HEX = '616464720000000000000000'
+
+BITCOIN_GETHEADERS_COMMAND_HEX = '676574686561646572730000'

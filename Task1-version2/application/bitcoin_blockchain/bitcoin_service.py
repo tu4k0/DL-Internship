@@ -1,107 +1,109 @@
 import binascii
-import requests
+import socket
+import sys
+import ipaddress
 
+from application.bitcoin_blockchain.bitcoin_config import *
 from application.bitcoin_blockchain.bitcoin import Bitcoin
 from application.bitcoin_blockchain.bitcoin_p2p import BitcoinP2P
+from application.bitcoin_blockchain.bitcoin_node_thread import BitcoinNodeThread
+from application.bitcoin_blockchain.bitcoin_statistic import BitcoinStatistic
 
 
 class BitcoinService:
+    ip: str
+    port: int
+    node_number: int
     bitcoin: Bitcoin
     bitcoin_p2p: BitcoinP2P
 
     def __init__(self, user_request):
-        self.bitcoin = Bitcoin(ip_address=user_request[0], port=user_request[1], node_number=user_request[2])
+        self.bitcoin = Bitcoin()
         self.bitcoin_p2p = BitcoinP2P()
+        self.ip = user_request[0]
+        self.port = user_request[1]
+        self.node_number = user_request[2]
 
     def start_session(self, user_request):
         ip_address = user_request[0]
         port = user_request[1]
         node_number = user_request[2]
-        self.bitcoin_p2p.set_socket()
-        connection = self.bitcoin_p2p.connect_node(ip_address, port)
+        found_peers = {}
+        version_payload = self.bitcoin_p2p.create_version_payload(ip_address)
+        version_message = self.bitcoin_p2p.create_message('version', version_payload)
+        verack_message = self.bitcoin_p2p.create_verack_payload()
+        getaddr_payload = self.bitcoin_p2p.create_getaddr_payload()
+        getaddr_message = self.bitcoin_p2p.create_message('getaddr', getaddr_payload)
+        node = self.bitcoin_p2p.set_socket()
+        connection = self.bitcoin_p2p.connect_node(node, ip_address, port)
         if connection:
-            print("active connections: ", node_number)
-            version_payload = self.bitcoin_p2p.create_version_payload(ip_address)
-            version_message = self.bitcoin_p2p.create_message('version', version_payload)
-            verack_message = self.bitcoin_p2p.create_verack_payload()
-            getdata_payload = self.bitcoin_p2p.create_getdata_payload()
-            getdata_message = self.bitcoin_p2p.create_message('getdata', getdata_payload)
-            self.bitcoin_p2p.send_message(version_message)
-            self.bitcoin_p2p.receive_message()
-            self.bitcoin_p2p.send_message(verack_message)
-            self.bitcoin_p2p.receive_message()
-            self.bitcoin_p2p.send_message(getdata_message)
-            self.bitcoin_p2p.receive_message()
-            response_data = self.bitcoin_p2p.receive_message()
-            best_block_hash, prev_block_hash = self.presenter_getheaders_response(response_data)
-            best_block_number = self.presenter_block_height(best_block_hash)
-            prev_block_number = self.presenter_block_height(prev_block_hash)
-            self.bitcoin.best_block_height = best_block_number
-            self.bitcoin.best_block_hash = best_block_hash
-            self.bitcoin.previous_block_height = prev_block_number
-            self.bitcoin.previous_block_hash = prev_block_hash
-            self.bitcoin.amount_sent_messages = self.bitcoin_p2p.requests
-            self.bitcoin.amount_received_messages = self.bitcoin_p2p.responses
-
-    def presenter_getheaders_response(self, response):
-        index = str(response).find("getheaders")
-        if index == -1:
-            getheaders = self.bitcoin_p2p.receive_message()
-            index = str(getheaders).find("getheaders")
-            best_block = binascii.hexlify(getheaders)[index + 40:index + 104]
-            prev_block_hash = binascii.hexlify(getheaders)[index + 104:index + 104 + 64].decode("utf-8")
-        else:
-            best_block = binascii.hexlify(response)[140:204]
-            prev_block_hash = binascii.hexlify(response)[204:268].decode("utf-8")
-
-        best_block_hash = best_block.decode("utf-8")
-        best_block_hash = bytearray.fromhex(best_block_hash)
-        best_block_hash.reverse()
-        prev_block_hash = bytearray.fromhex(prev_block_hash)
-        prev_block_hash.reverse()
-
-        return best_block_hash.hex(), prev_block_hash.hex()
-
-    def presenter_block_height(self, block_hash):
-        block_height = 0
-        while block_height == 0:
-            block_height_message = f"https://blockstream.info/api/block/{block_hash}"
-            response = requests.get(block_height_message)
-            response.raise_for_status()
-            if response.status_code != 204:
-                block_height = response.json()['height']
-
-        return block_height
-
-    def handle_getaddr_response(self, response, node_number):
-        found_peers = []
-        found_nodes = {}
-        search_index = 0
-        getaddr_index = str(response).find("addr")
-        if getaddr_index != -1:
-            response_data = self.bitcoin_p2p.receive_message()[3:]
-            nodes = binascii.hexlify(response_data)
-            node_info_size = 60
-            while len(found_nodes) < node_number:
-                found_peers.append(nodes[:node_info_size])
-                node_index = str(found_peers[search_index]).rfind("ffff")
-                if node_index != -1:
-                    nodes = nodes[node_info_size:]
-                    found = found_peers[search_index][node_index + 2:node_index + 14]
-                    ip_address_hex = found[:8]
-                    port = int(found[8:12], 16)
-                    if port == 8333:
-                        ip_address = ''
-                        for i in range(0, len(ip_address_hex), 2):
-                            ip_address_dec = int(ip_address_hex[i:i + 2], 16)
-                            ip_address += f'{ip_address_dec}.'
-                        search_index += 1
-                        found_nodes.update({ip_address.rstrip('.'): port})
-                    else:
-                        pass
+            self.bitcoin_p2p.send_message(node, version_message)
+            version_response = self.bitcoin_p2p.receive_message(node)
+            if not version_response:
+                sys.exit('Node not responding')
+            self.bitcoin_p2p.send_message(node, verack_message)
+            response_data = self.bitcoin_p2p.receive_message(node)
+            self.bitcoin_p2p.send_message(node, getaddr_message)
+            while True:
+                if str(response_data).find('addr') != -1:
+                    found_peers = self.get_nodes_from_getaddr(node, response_data, node_number, ip_address, port)
+                    break
                 else:
-                    nodes = nodes[node_info_size:]
-            return found_nodes
+                    response_data = self.bitcoin_p2p.receive_message(node)
+            node.close()
+        while True:
+            node_threads = []
+            for ip, port in found_peers.items():
+                node = BitcoinNodeThread(ip, port, self.bitcoin, self.bitcoin_p2p)
+                node.start()
+                node_threads.append(node)
+            for node in node_threads:
+                node.stop()
+            bitcoin_statistic = BitcoinStatistic(self.bitcoin, self.bitcoin_p2p)
+            bitcoin_statistic.set_amount_sent_messages()
+            bitcoin_statistic.set_amount_received_messages()
+            bitcoin_statistic.print_blockchain_info()
+            bitcoin_statistic.clear_statistic()
 
-    def close_session(self):
-        self.bitcoin_p2p.disconnect_node()
+    def get_nodes_from_getaddr(self, node, response_data, node_number, ip_address, port):
+        found_nodes = {}
+        found_nodes.update({str(ip_address): port})
+        getaddr = binascii.hexlify(response_data)
+        getaddr_index = str(getaddr).find(BITCOIN_GETADDR_COMMAND_HEX)
+        if len(getaddr[getaddr_index - 2:]) == 40:
+            response_data += self.bitcoin_p2p.receive_message(node)
+        node_info_size = 12
+        response_data = response_data[27:]
+        while len(found_nodes) < node_number:
+            node = binascii.hexlify(response_data[node_info_size:node_info_size + 16])
+            if str(node).find('ffff') == -1:
+                peer = ipaddress.IPv6Address(bytes(response_data[node_info_size:node_info_size + 16]))
+                port = binascii.hexlify(response_data[node_info_size + 16:node_info_size + 18])
+                node_info_size += 30
+            else:
+                peer = str(ipaddress.IPv6Address(bytes(response_data[node_info_size:node_info_size + 16])).ipv4_mapped)
+                port = binascii.hexlify(response_data[node_info_size + 16:node_info_size + 18])
+                if int(port, 16) == 8333:
+                    found_nodes.update({peer: 8333})
+                node_info_size += 30
+
+        return found_nodes
+
+    def get_nodes_from_dns_seeds(self, node_number, ip_address, port) -> dict:
+        found_peers = dict()
+        search_index = 0
+        found_peers.update({ip_address: port})
+        try:
+            for (ip_address, port) in DNS_SEEDS:
+                for info in socket.getaddrinfo(ip_address, port,
+                                               socket.AF_INET, socket.SOCK_STREAM,
+                                               socket.IPPROTO_TCP):
+                    if search_index == node_number:
+                        break
+                    else:
+                        found_peers.update({str(info[4][0]): info[4][1]})
+                        search_index += 1
+        except Exception:
+            raise Exception
+        finally:
+            return found_peers

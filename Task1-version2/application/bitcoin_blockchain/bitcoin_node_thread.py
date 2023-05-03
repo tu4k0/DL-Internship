@@ -1,10 +1,8 @@
 import binascii
-import json
-import threading
-
 import requests
 
 from application.bitcoin_blockchain.bitcoin import Bitcoin
+from application.bitcoin_blockchain.bitcoin_config import *
 from application.bitcoin_blockchain.bitcoin_p2p import BitcoinP2P
 from application.multithreading.base_thread import BaseThread
 
@@ -15,9 +13,9 @@ class BitcoinNodeThread(BaseThread):
     bitcoin: Bitcoin
     bitcoin_p2p: BitcoinP2P
 
-    def __init__(self, ip, port, bitcoin: Bitcoin, bitcoin_p2p: BitcoinP2P):
+    def __init__(self, ip_address: str, port: int, bitcoin: Bitcoin, bitcoin_p2p: BitcoinP2P):
         super().__init__()
-        self.ip = ip
+        self.ip = ip_address
         self.port = port
         self.bitcoin = bitcoin
         self.bitcoin_p2p = bitcoin_p2p
@@ -28,7 +26,8 @@ class BitcoinNodeThread(BaseThread):
         if connection:
             version_payload = self.bitcoin_p2p.create_version_payload(self.ip)
             version_message = self.bitcoin_p2p.create_message('version', version_payload)
-            verack_message = self.bitcoin_p2p.create_verack_payload()
+            verack_payload = self.bitcoin_p2p.create_verack_payload()
+            verack_message = self.bitcoin_p2p.create_message('verack', verack_payload)
             getdata_payload = self.bitcoin_p2p.create_getdata_payload()
             getdata_message = self.bitcoin_p2p.create_message('getdata', getdata_payload)
             self.bitcoin_p2p.send_message(node, version_message)
@@ -43,6 +42,7 @@ class BitcoinNodeThread(BaseThread):
                 self.bitcoin.prev_block_hashes.append(prev_block_hash)
                 self.bitcoin.prev_block_numbers.append(prev_block_number)
             else:
+                self.bitcoin.active_connections += 1
                 self.bitcoin_p2p.send_message(node, verack_message)
                 response_data = self.bitcoin_p2p.receive_message(node)
                 self.bitcoin_p2p.send_message(node, getdata_message)
@@ -59,13 +59,13 @@ class BitcoinNodeThread(BaseThread):
                 self.bitcoin.prev_block_hashes.append(prev_block_hash)
             node.close()
 
-    def handle_getheaders_message(self, node, response_data):
+    def handle_getheaders_message(self, node, response_data) -> tuple[str, str]:
         getheaders = binascii.hexlify(response_data)
-        getheaders_index = str(getheaders).find('676574686561646572730000')
+        getheaders_index = str(getheaders).find(BITCOIN_GETHEADERS_COMMAND_HEX)
         if len(getheaders[getheaders_index - 2:]) == 40:
             response_data += self.bitcoin_p2p.receive_message(node)
         info = binascii.hexlify(response_data)
-        index = str(info).find('676574686561646572730000')
+        index = str(info).find(BITCOIN_GETHEADERS_COMMAND_HEX)
         starting_hash = str(info)[index + 50:]
         block_hash_size = 64
         block_hashes = []
@@ -78,10 +78,16 @@ class BitcoinNodeThread(BaseThread):
         best_block_hash.reverse()
         prev_block_hash = bytearray.fromhex(block_hashes[1])
         prev_block_hash.reverse()
+
         return best_block_hash.hex(), prev_block_hash.hex()
 
-    def get_best_block_height(self, hash):
-        block_height_message = f"https://blockstream.info/api/block/{hash}"
-        response = requests.get(block_height_message)
-        block_height = response.json()['height']
+    def get_best_block_height(self, block_hash) -> int:
+        block_height = 0
+        while block_height == 0:
+            block_height_message = f"https://blockstream.info/api/block/{block_hash}"
+            response = requests.get(block_height_message)
+            response.raise_for_status()
+            if response.status_code != 204:
+                block_height = response.json()['height']
+
         return block_height
