@@ -16,7 +16,7 @@ class BitcoinP2P(BaseBlockchain):
 
     def set_node(self):
         super().set_node()
-        self.node.bind(('', BITCOIN_MAINNET))
+        self.node.bind(('', BITCOIN_MAINNET_PORT))
 
         return self.node
 
