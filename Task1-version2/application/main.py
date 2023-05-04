@@ -8,4 +8,3 @@ if __name__ == "__main__":
         cli.run()
     except KeyboardInterrupt:
         sys.exit('Stop collecting info')
-
