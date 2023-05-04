@@ -1,52 +1,44 @@
 # Dl-Internship. Task1-version2
 
 ## Завдання
-Розробити backend сервіс для встановлення нативного з'єднання з вузлом P2P мережі блокчейну та моніторингу інформації облікової системи. 
+Розробити міні-вузол, який здійснює нативне з'єднання з вузлом P2P мережі блокчейну та проводить моніторинг інформації облікових систем. 
 
 ## Загальна характеристика програми
-Сервіс представляє собою додаток представлений у вигляді інтерфейсів:  
+Сервіс представляє собою модульний додаток представлений у вигляді інтерфейсів:  
 base_blockchain - абстрактний базовий клас;   
 btc_blockchain - клас Bitcoin, містить основні методи для взаємодії та обміну повідомленнями з вузлом через P2P Mainnet мережу з використанням сокетів (PORT: 8333, MSG: magic + command + length + checksum);    
-eth_blockchin - клас Ethereum, містить основні методи для взаємодії та обміну повідомленнями з вузлом через P2P Mainnet мережу з використанням сокетів (PORT: 8545, MSG: JSON);      
+eth_blockchin - клас Ethereum, містить основні методи для взаємодії та обміну повідомленнями з вузлом через P2P Mainnet мережу з використанням сокетів (PORT: 8545, MSG: JSONRPC);      
 
 ## Технології 
-- Мова програмування: Python 3.10.10;  
+- Мова програмування: Python 3.8.3;  
 - Середовище розробки: PyCharm Pro 2021.3.2;
-- CLI: Typer 0.7.0
+- CLI: CMD (sys.argv);  
 - Механізм встановлення з'єднання з вузлом мережі: Socket (TCP message request/response);  
 
 ## Процес запуску програми/сеансу
-У cmd за шляхом DL-Internship\Task1-version2\application набрати команду python main.py start-session
+У cmd за посиланням ...\application ввести команду python main.py -ip_address:port -node_number
 
 ## Екранні форми роботи програми
 
-# Оновлена Версія 2 - багатопотоковість та збір статистики (Bitcoin)  
-![Image text](https://github.com/tu4k0/DL-Internship/blob/master/Task1-version2/app_images/version_2/Bitcoin_connection1.png)  
-![Image text](https://github.com/tu4k0/DL-Internship/blob/master/Task1-version2/app_images/version_2/Bitcoin_connection2.png)  
-![Image text](https://github.com/tu4k0/DL-Internship/blob/master/Task1-version2/app_images/version_2/Bitcoin_connection3.png)  
-![Image text](https://github.com/tu4k0/DL-Internship/blob/master/Task1-version2/app_images/version_2/Bitcoin_connection4.png)  
-![Image text](https://github.com/tu4k0/DL-Internship/blob/master/Task1-version2/app_images/version_2/Bitcoin_connection5.png)  
+# Оновлена Версія 3 - Оновлення збору статистики та інтеграція облікової мережі Ethereum  
+# Bitcoin  
+  
+![Image text](https://github.com/tu4k0/DL-Internship/blob/master/Task1-version2/app_images/version_3/Bitcoin_statistic.png)  
 
-Опис виконання: користувач обирає облікову систему та задає IP адресу та порт вузла для підключення та кількість вузлів, з якими необхідно підтримувати з'єднання. Далі система у багатопотоковому режимі збирає статистику від кожного вузла та окремим потоком відображує зібрану статистику на екрані з оновленням 1 раз на 5 секунд.  
+# Ethereum  
+  
+![Image text](https://github.com/tu4k0/DL-Internship/blob/master/Task1-version2/app_images/version_3/Ethereum_statistic.png)  
 
-# Версія 1 (Не оновлена) 
-python main.py --help  
-![Image text](https://github.com/tu4k0/DL-Internship/blob/master/Task1-version2/app_images/version_1/--help.png)    
-
-python main.py help  
-![Image text](https://github.com/tu4k0/DL-Internship/blob/master/Task1-version2/app_images/version_1/help.png)   
-
-python main.py start-session (BTC)  
-![Image text](https://github.com/tu4k0/DL-Internship/blob/master/Task1-version2/app_images/version_1/start-session_BTC.png)  
-![Image text](https://github.com/tu4k0/DL-Internship/blob/master/Task1-version2/app_images/version_1/start-session_BTC2.png)  
-
-python main.py start-session (ETH)  
-![Image text](https://github.com/tu4k0/DL-Internship/blob/master/Task1-version2/app_images/version_1/start-session_ETH1.png)  
-![Image text](https://github.com/tu4k0/DL-Internship/blob/master/Task1-version2/app_images/version_1/start-session_ETH2.png)  
-![Image text](https://github.com/tu4k0/DL-Internship/blob/master/Task1-version2/app_images/version_1/start-session_ETH3.png)  
-![Image text](https://github.com/tu4k0/DL-Internship/blob/master/Task1-version2/app_images/version_1/start-session_ETH4.png)  
+Опис виконання: користувач обирає облікову систему та задає IP адресу та порт вузла для підключення та кількість вузлів, з якими необхідно підтримувати з'єднання. Далі система у багатопотоковому режимі збирає статистику від кожного вузла та окремим потоком відображує зібрану статистику на екрані з таймаутом на оновлення.  
 
 Wireshark (BTC):  
 ![Image text](https://github.com/tu4k0/DL-Internship/blob/master/Task1-version2/app_images/wireshark/wireshark_result.png)    
 
-!! Можливі оновлення та покращення програмної реалізації завдання !!  
+## Шляхи розвитку проекту  
+- [] Нативний пошук вузлів у Ethereum;  
+- [] Підтримка та збір статистики транзакцій;  
+- [] Обробка та взаємодія з IPv6 адресами bitcoin вузлів;  
+- [] Зручний CLI;
+- [] Підтримка більшої кількості вузлів (масштабованість);
+- [] Створення програми трафіку надсилання та отримання повідомлень;  
+- [] Підтримка нових облікових мереж.  
