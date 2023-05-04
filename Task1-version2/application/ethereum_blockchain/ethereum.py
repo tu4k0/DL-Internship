@@ -1,6 +1,5 @@
 class Ethereum:
-    ip_address: str
-    port: int
+    nodes: dict
     best_block_hashes: list
     best_block_numbers: list
     prev_block_hashes: list
@@ -10,6 +9,7 @@ class Ethereum:
     active_connections: int
 
     def __init__(self):
+        self.nodes = {}
         self.amount_sent_messages = 0
         self.amount_received_messages = 0
         self.best_block_hashes = []
