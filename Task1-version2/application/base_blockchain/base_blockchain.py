@@ -2,8 +2,6 @@ import socket
 import requests
 
 from abc import abstractmethod, ABC
-from application.bitcoin_blockchain.bitcoin_config import *
-from application.ethereum_blockchain.eth_config import *
 
 
 class BaseBlockchain(ABC):
@@ -20,18 +18,20 @@ class BaseBlockchain(ABC):
         self.responses = 0
 
     @abstractmethod
-    def create_getdata_payload(self):
+    def create_message(self, *data):
+        pass
+
+    @abstractmethod
+    def create_getdata_payload(self, *data):
         pass
 
     @abstractmethod
     def create_ping_payload(self):
         pass
 
-    def decode_response_message(self, response_message):
-        pass
-
-    def get_ip(self) -> str:
-        ip = requests.get(ip_link).text.strip()
+    @staticmethod
+    def get_ip() -> str:
+        ip = requests.get('https://checkip.amazonaws.com').text.strip()
 
         return ip
 
@@ -53,7 +53,7 @@ class BaseBlockchain(ABC):
             conn, address = self.node.accept()
             print("Connection from: " + str(address))
             while True:
-                data = conn.recv(1024).decode()
+                data = conn.recv(4096).decode()
                 if not data:
                     break
                 return data
@@ -77,7 +77,7 @@ class BaseBlockchain(ABC):
         except OSError:
             pass
 
-    def receive_message(self, node):
+    def receive_message(self, node) -> bytes:
         response = b''
         try:
             response = node.recv(4096)
