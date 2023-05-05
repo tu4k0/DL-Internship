@@ -56,5 +56,6 @@ class EthereumService:
             ethereum_statistic.set_amount_sent_messages()
             ethereum_statistic.set_amount_received_messages()
             ethereum_statistic.print_blockchain_info()
+            time.sleep(5)
+            ethereum_statistic.clean_statistics()
             ethereum_statistic.clear_statistic()
-
