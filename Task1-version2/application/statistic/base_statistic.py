@@ -1,4 +1,4 @@
-import sys
+import os
 from abc import abstractmethod, ABC
 
 from application.bitcoin_blockchain.bitcoin import Bitcoin
@@ -34,9 +34,5 @@ class BaseStatistic(ABC):
     def get_amount_received_messages(self):
         return self.blockchain.amount_received_messages
 
-    def clean_statistics(self, statistic_rows):
-        CURSOR_UP_ONE = '\x1b[1A'
-        ERASE_LINE = '\x1b[2K'
-        for _ in range(statistic_rows):
-            sys.stdout.write(CURSOR_UP_ONE)
-            sys.stdout.write(ERASE_LINE)
+    def clean_statistics(self):
+        os.system('cls')
