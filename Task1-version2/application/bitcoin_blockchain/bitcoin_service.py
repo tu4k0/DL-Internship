@@ -1,6 +1,8 @@
 import binascii
 import socket
 import sys
+import time
+
 import ipaddress
 
 from application.bitcoin_blockchain.bitcoin_config import *
@@ -63,6 +65,8 @@ class BitcoinService:
             bitcoin_statistic.set_amount_sent_messages()
             bitcoin_statistic.set_amount_received_messages()
             bitcoin_statistic.print_blockchain_info()
+            time.sleep(5)
+            bitcoin_statistic.clean_statistics()
             bitcoin_statistic.clear_statistic()
 
     def get_nodes_from_getaddr(self, node, response_data, node_number, ip_address, port):
