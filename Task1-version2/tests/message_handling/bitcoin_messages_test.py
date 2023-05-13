@@ -5,8 +5,6 @@ import socket
 import struct
 import time
 
-import redis
-from cacheout import Cache
 
 constant = {'magic_value': 0xd9b4bef9,
              'peer_ip_address': '109.190.247.5',
@@ -122,44 +120,44 @@ def handle_getheaders_message(node, response_data):
 
 if __name__ == '__main__':
     messages = []
-    with open('messages.txt', 'w') as messages_file:
-        start_time = time.time()
+    start_time = time.time()
 
-        # Create Messages
-        version_payload = create_version_payload(constant['peer_ip_address'])
-        version_message = create_message('version', version_payload)
-        verack_message = create_verack_payload()
-        getdata_payload = create_getdata_payload()
-        getdata_message = create_message('getdata', getdata_payload)
+    # Create Messages
+    version_payload = create_version_payload(constant['peer_ip_address'])
+    version_message = create_message('version', version_payload)
+    verack_message = create_verack_payload()
+    getdata_payload = create_getdata_payload()
+    getdata_message = create_message('getdata', getdata_payload)
 
-        # Establish Node TCP Connection
-        node = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        node.connect((constant['peer_ip_address'], constant['peer_tcp_port']))
+    # Establish Node TCP Connection
+    node = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    node.connect((constant['peer_ip_address'], constant['peer_tcp_port']))
+    light_node = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    light_node.connect(('127.0.0.1', 8333))
 
-        # Send message "version"
-        node.send(version_message)
-        messages.append(version_message)
-        response_data = node.recv(constant['buffer_size'])
-        messages.append(response_data)
-        # Send message "verack"
-        node.send(verack_message)
-        messages.append(verack_message)
-        response_data = node.recv(constant['buffer_size'])
-        messages.append(response_data)
-        # Send message "getdata"
-        node.send(getdata_message)
-        messages.append(getdata_message)
-        while True:
-            if str(response_data).find('getheaders') != -1:
-                best_block_hash, prev_block_hash = handle_getheaders_message(node, response_data)
-                break
-            else:
-                response_data = node.recv(constant['buffer_size'])
+    # Send message "version"
+    node.send(version_message)
+    light_node.send(version_message)
+    response_data = node.recv(constant['buffer_size'])
+    light_node.send(response_data)
 
-        print('Best block hash: ', best_block_hash)
-        print('Prev block hash: ', prev_block_hash)
-        print('Retreiving block hash data execution time: ', time.time()-start_time)
-        # Disconnect from node and Close the TCP connection
-        messages_file.writelines(messages)
-        node.close()
+    # Send message "verack"
+    node.send(verack_message)
+    response_data = node.recv(constant['buffer_size'])
+    # Send message "getdata"
+    node.send(getdata_message)
+    messages.append(getdata_message)
+    while True:
+        if str(response_data).find('getheaders') != -1:
+            best_block_hash, prev_block_hash = handle_getheaders_message(node, response_data)
+            break
+        else:
+            response_data = node.recv(constant['buffer_size'])
+
+    print('Best block hash: ', best_block_hash)
+    print('Prev block hash: ', prev_block_hash)
+    print('Retreiving block hash data execution time: ', time.time()-start_time)
+    # Disconnect from node and Close the TCP connection
+    node.close()
+    light_node.close()
 
