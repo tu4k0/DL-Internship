@@ -1,9 +1,7 @@
 import csv
-import json
-import sys
 import time
 
-from application.ethereum_blockchain.ethereum_config import *
+from application.ethereum_blockchain.ethereum_config import NODES_LIST_CSV
 from application.ethereum_blockchain.ethereum import Ethereum
 from application.ethereum_blockchain.ethereum_p2p import EthereumP2P
 from application.ethereum_blockchain.ethereum_node_thread import EthereumNodeThread

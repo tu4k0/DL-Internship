@@ -2,7 +2,7 @@ import binascii
 import requests
 
 from application.bitcoin_blockchain.bitcoin import Bitcoin
-from application.bitcoin_blockchain.bitcoin_config import *
+from application.bitcoin_blockchain.bitcoin_config import BITCOIN_GETHEADERS_COMMAND_HEX
 from application.bitcoin_blockchain.bitcoin_p2p import BitcoinP2P
 from application.multithreading.base_thread import BaseThread
 

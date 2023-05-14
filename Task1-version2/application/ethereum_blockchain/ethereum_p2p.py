@@ -2,7 +2,7 @@ import json
 import socket
 
 from application.base_blockchain.base_blockchain import BaseBlockchain
-from application.ethereum_blockchain.ethereum_config import *
+from application.ethereum_blockchain.ethereum_config import HOST, ETHEREUM_MAINNET_PORT, JSON_VERSION, JSON_ID
 
 
 class EthereumP2P(BaseBlockchain):

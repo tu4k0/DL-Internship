@@ -5,7 +5,7 @@ import time
 
 import ipaddress
 
-from application.bitcoin_blockchain.bitcoin_config import *
+from application.bitcoin_blockchain.bitcoin_config import DNS_SEEDS, BITCOIN_GETADDR_COMMAND_HEX
 from application.bitcoin_blockchain.bitcoin import Bitcoin
 from application.bitcoin_blockchain.bitcoin_p2p import BitcoinP2P
 from application.bitcoin_blockchain.bitcoin_node_thread import BitcoinNodeThread

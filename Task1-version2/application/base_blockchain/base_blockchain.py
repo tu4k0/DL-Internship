@@ -59,7 +59,7 @@ class BaseBlockchain(ABC):
                 return data
 
     def connect_node(self, node, ip_address, port) -> str:
-        node.settimeout(2)
+        node.settimeout(0.5)
         try:
             node.connect((ip_address, port))
         except TimeoutError:
