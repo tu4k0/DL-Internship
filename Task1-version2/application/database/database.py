@@ -27,8 +27,11 @@ class Database():
         blockchain_data = BlockchainModel(blockchain_type, active_connections, last_block, last_block_hash, confirmed_nodes_1, previous_block, previous_block_hash, confirmed_nodes_2, sent_messages, received_messages)
         self.blockchain.insert_one(blockchain_data.set_info())
 
-    def delete_nodes(self):
-        self.node.delete_many({})
+    def delete_nodes(self, blockchain_type):
+        self.node.delete_many({'blockchain_type': blockchain_type})
+
+    def delete_blockchain_info(self, blockchain_type):
+        self.blockchain.delete_many({'blockchain_type': blockchain_type})
 
     def update_node_status(self, ip, status):
         self.node.update_one({"ip_address": ip}, {"$set": {"connection_status": status}})
