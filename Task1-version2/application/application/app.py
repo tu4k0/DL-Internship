@@ -2,8 +2,8 @@ import sys
 
 from application.bitcoin_blockchain.bitcoin_controller import BitcoinController
 from application.ethereum_blockchain.ethereum_controller import EthereumController
-from application.bitcoin_blockchain.bitcoin_config import *
-from application.ethereum_blockchain.ethereum_config import *
+from application.bitcoin_blockchain.bitcoin_config import BITCOIN_MAINNET_PORT
+from application.ethereum_blockchain.ethereum_config import ETHEREUM_MAINNET_PORT
 
 
 class CLI:
