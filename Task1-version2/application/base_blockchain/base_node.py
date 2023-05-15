@@ -19,7 +19,7 @@ class BaseNode(ABC):
         pass
 
     @abstractmethod
-    def print_messages(self, data):
+    def present_messages(self, data):
         pass
 
     def connect(self) -> str:
@@ -30,6 +30,15 @@ class BaseNode(ABC):
             self.node.close()
         finally:
             return self.ip
+
+    def disconnect(self):
+        self.node.close()
+
+    def send(self, message):
+        try:
+            self.node.send(message)
+        except OSError:
+            pass
 
     def get_connections(self):
         if self.node is None:
@@ -42,4 +51,4 @@ class BaseNode(ABC):
                 if not data:
                     pass
                 else:
-                    self.print_messages(data)
+                    self.present_messages(data)
