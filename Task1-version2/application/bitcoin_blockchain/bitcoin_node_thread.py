@@ -5,6 +5,7 @@ from application.bitcoin_blockchain.bitcoin import Bitcoin
 from application.bitcoin_blockchain.bitcoin_config import BITCOIN_GETHEADERS_COMMAND_HEX
 from application.bitcoin_blockchain.bitcoin_node import BitcoinNode
 from application.bitcoin_blockchain.bitcoin_p2p import BitcoinP2P
+from application.database.database import Database
 from application.multithreading.base_thread import BaseThread
 
 
@@ -14,14 +15,16 @@ class BitcoinNodeThread(BaseThread):
     bitcoin: Bitcoin
     bitcoin_p2p: BitcoinP2P
     bitcoin_light_node: BitcoinNode
+    database: Database
 
-    def __init__(self, ip_address: str, port: int, bitcoin: Bitcoin, bitcoin_p2p: BitcoinP2P, bitcoin_light_node: BitcoinNode):
+    def __init__(self, ip_address: str, port: int, bitcoin: Bitcoin, bitcoin_p2p: BitcoinP2P, bitcoin_light_node: BitcoinNode, database: Database):
         super().__init__()
         self.ip = ip_address
         self.port = port
         self.bitcoin = bitcoin
         self.bitcoin_p2p = bitcoin_p2p
         self.bitcoin_light_node = bitcoin_light_node
+        self.database = database
 
     def run(self):
         node = self.bitcoin_p2p.set_socket()
@@ -46,6 +49,7 @@ class BitcoinNodeThread(BaseThread):
                 self.bitcoin.prev_block_hashes.append(prev_block_hash)
                 self.bitcoin.prev_block_numbers.append(prev_block_number)
             else:
+                self.database.update_node_status(self.ip, True)
                 self.bitcoin.active_connections += 1
                 self.bitcoin_p2p.send_message(node, verack_message)
                 response_data = self.bitcoin_p2p.receive_message(node)
