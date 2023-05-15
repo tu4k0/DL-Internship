@@ -3,6 +3,7 @@ import requests
 
 from application.bitcoin_blockchain.bitcoin import Bitcoin
 from application.bitcoin_blockchain.bitcoin_config import BITCOIN_GETHEADERS_COMMAND_HEX
+from application.bitcoin_blockchain.bitcoin_node import BitcoinNode
 from application.bitcoin_blockchain.bitcoin_p2p import BitcoinP2P
 from application.multithreading.base_thread import BaseThread
 
@@ -12,17 +13,19 @@ class BitcoinNodeThread(BaseThread):
     port: int
     bitcoin: Bitcoin
     bitcoin_p2p: BitcoinP2P
+    bitcoin_light_node: BitcoinNode
 
-    def __init__(self, ip_address: str, port: int, bitcoin: Bitcoin, bitcoin_p2p: BitcoinP2P):
+    def __init__(self, ip_address: str, port: int, bitcoin: Bitcoin, bitcoin_p2p: BitcoinP2P, bitcoin_light_node: BitcoinNode):
         super().__init__()
         self.ip = ip_address
         self.port = port
         self.bitcoin = bitcoin
         self.bitcoin_p2p = bitcoin_p2p
+        self.bitcoin_light_node = bitcoin_light_node
 
     def run(self):
         node = self.bitcoin_p2p.set_socket()
-        connection = self.bitcoin_p2p.connect_node(node, self.ip, self.port)
+        connection = self.bitcoin_p2p.connect(node, self.ip, self.port)
         if connection:
             version_payload = self.bitcoin_p2p.create_version_payload(self.ip)
             version_message = self.bitcoin_p2p.create_message('version', version_payload)
@@ -32,6 +35,7 @@ class BitcoinNodeThread(BaseThread):
             getdata_message = self.bitcoin_p2p.create_message('getdata', getdata_payload)
             self.bitcoin_p2p.send_message(node, version_message)
             version_response = self.bitcoin_p2p.receive_message(node)
+            self.bitcoin_light_node.send(version_response)
             if not version_response:
                 best_block_hash = None
                 best_block_number = None
@@ -45,10 +49,16 @@ class BitcoinNodeThread(BaseThread):
                 self.bitcoin.active_connections += 1
                 self.bitcoin_p2p.send_message(node, verack_message)
                 response_data = self.bitcoin_p2p.receive_message(node)
+                self.bitcoin_light_node.send(response_data)
                 self.bitcoin_p2p.send_message(node, getdata_message)
-                while True:
+                while 1:
                     if str(response_data).find('getheaders') != -1:
-                        best_block_hash, prev_block_hash = self.handle_getheaders_message(node, response_data)
+                        getheaders = binascii.hexlify(response_data)
+                        getheaders_index = str(getheaders).find(BITCOIN_GETHEADERS_COMMAND_HEX)
+                        if len(getheaders[getheaders_index - 2:]) == 40:
+                            response_data += self.bitcoin_p2p.receive_message(node)
+                            self.bitcoin_light_node.send(response_data)
+                        best_block_hash, prev_block_hash = self.handle_getheaders_message(response_data)
                         break
                     else:
                         response_data = self.bitcoin_p2p.receive_message(node)
@@ -59,11 +69,7 @@ class BitcoinNodeThread(BaseThread):
                 self.bitcoin.prev_block_hashes.append(prev_block_hash)
             node.close()
 
-    def handle_getheaders_message(self, node, response_data) -> tuple[str, str]:
-        getheaders = binascii.hexlify(response_data)
-        getheaders_index = str(getheaders).find(BITCOIN_GETHEADERS_COMMAND_HEX)
-        if len(getheaders[getheaders_index - 2:]) == 40:
-            response_data += self.bitcoin_p2p.receive_message(node)
+    def handle_getheaders_message(self, response_data) -> tuple[str, str]:
         info = binascii.hexlify(response_data)
         index = str(info).find(BITCOIN_GETHEADERS_COMMAND_HEX)
         starting_hash = str(info)[index + 50:]
