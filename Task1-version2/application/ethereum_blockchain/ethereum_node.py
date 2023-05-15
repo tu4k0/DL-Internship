@@ -4,13 +4,13 @@ from application.ethereum_blockchain.ethereum_config import ETHEREUM_MAINNET_POR
 
 class EthereumNode(BaseNode):
 
-    def __init__(self, ip):
+    def __init__(self):
         super().__init__()
-        self.ip = ip
+        self.ip = '127.0.0.1'
         self.port = ETHEREUM_MAINNET_PORT
 
     def set_node(self):
         self.node.bind((self.ip, self.port))
 
-    def print_messages(self, data):
+    def present_messages(self, data):
         print(data)
