@@ -1,8 +1,10 @@
 import csv
+import sys
 import time
 
 from application.ethereum_blockchain.ethereum_config import NODES_LIST_CSV
 from application.ethereum_blockchain.ethereum import Ethereum
+from application.ethereum_blockchain.ethereum_node import EthereumNode
 from application.ethereum_blockchain.ethereum_p2p import EthereumP2P
 from application.ethereum_blockchain.ethereum_node_thread import EthereumNodeThread
 from application.ethereum_blockchain.ethereum_statistic import EthereumStatistic
@@ -41,11 +43,25 @@ class EthereumService:
         return found_peers
 
     def start_session(self):
-        node_threads = []
+        ethereum_light_node = EthereumNode()
+        ethereum_light_node.connect()
+        listening_payload = self.ethereum_p2p.create_ping_payload()
+        listening_message = self.ethereum_p2p.create_message(listening_payload)
+        node = self.ethereum_p2p.set_socket()
+        connection = self.ethereum_p2p.connect(node, self.ip, self.port)
+        if not connection:
+            sys.exit('Unable to create socket')
+        self.ethereum_p2p.send_message(node, listening_message)
+        ping_response = self.ethereum_p2p.receive_message(node)
+        if not ping_response:
+            sys.exit('Node not responding')
+        ethereum_light_node.send(ping_response)
         nodes = self.get_nodes_from_csv()
-        while True:
+        while 1:
+            start_time = time.perf_counter()
+            node_threads = []
             for ip, port in nodes.items():
-                node = EthereumNodeThread(ip, port, self.ethereum, self.ethereum_p2p)
+                node = EthereumNodeThread(ip, port, self.ethereum, self.ethereum_p2p, ethereum_light_node)
                 node.start()
                 node_threads.append(node)
             for node in node_threads:
@@ -54,6 +70,9 @@ class EthereumService:
             ethereum_statistic.set_amount_sent_messages()
             ethereum_statistic.set_amount_received_messages()
             ethereum_statistic.print_blockchain_info()
-            time.sleep(5)
+            avg_processing_time = time.perf_counter() - start_time
+            if avg_processing_time > 5:
+                time.sleep(5)
+            time.sleep(5 - avg_processing_time)
             ethereum_statistic.clean_statistics()
             ethereum_statistic.clear_statistic()
