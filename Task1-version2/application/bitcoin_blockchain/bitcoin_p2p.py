@@ -14,12 +14,6 @@ class BitcoinP2P(BaseBlockchain):
     def __init__(self):
         super(BitcoinP2P, self).__init__()
 
-    def set_node(self):
-        super().set_node()
-        self.node.bind(('', BITCOIN_MAINNET_PORT))
-
-        return self.node
-
     def create_message(self, command, payload) -> bytes:
         magic = bytes.fromhex(BITCOIN_MAINNET_MAGIC)
         command = bytes(command, 'utf-8') + (12 - len(command)) * b"\00"
