@@ -10,4 +10,4 @@ class BitcoinController:
         self.bitcoin_service = BitcoinService(user_request)
 
     def start_data_collecting_session(self):
-        self.bitcoin_service.start_session(self.user_request)
+        self.bitcoin_service.start_session()
