@@ -1,6 +1,7 @@
 import json
 
 from application.ethereum_blockchain.ethereum import Ethereum
+from application.ethereum_blockchain.ethereum_node import EthereumNode
 from application.ethereum_blockchain.ethereum_p2p import EthereumP2P
 from application.multithreading.base_thread import BaseThread
 
@@ -10,49 +11,49 @@ class EthereumNodeThread(BaseThread):
     port: int
     ethereum: Ethereum
     ethereum_p2p: EthereumP2P
+    ethereum_light_node: EthereumNode
 
-    def __init__(self, ip, port, ethereum: Ethereum, ethereum_p2p: EthereumP2P):
+    def __init__(self, ip, port, ethereum: Ethereum, ethereum_p2p: EthereumP2P, ethereum_light_node: EthereumNode):
         super().__init__()
         self.ip = ip
         self.port = port
         self.ethereum = ethereum
         self.ethereum_p2p = ethereum_p2p
+        self.ethereum_light_node = ethereum_light_node
 
     def run(self):
+        best_block_hash, best_block_number, prev_block_number, prev_block_hash = None, None, None, None
         listening_payload = self.ethereum_p2p.create_ping_payload()
         listening_message = self.ethereum_p2p.create_message(listening_payload)
         node = self.ethereum_p2p.set_socket()
-        connection = self.ethereum_p2p.connect_node(node, self.ip, self.port)
+        connection = self.ethereum_p2p.connect(node, self.ip, self.port)
         if connection:
             self.ethereum_p2p.send_message(node, listening_message)
-            response = self.ethereum_p2p.receive_message(node)
-            status = self.handle_node_listening_status(response)
+            ping_response = self.ethereum_p2p.receive_message(node)
+            status = self.handle_node_listening_status(ping_response)
             if status:
+                self.ethereum_light_node.send(ping_response)
                 self.ethereum.active_connections += 1
                 best_block_number_payload = self.ethereum_p2p.create_best_block_height_payload()
                 best_block_number_message = self.ethereum_p2p.create_message(best_block_number_payload)
                 self.ethereum_p2p.send_message(node, best_block_number_message)
                 best_block_number_response = self.ethereum_p2p.receive_message(node)
+                self.ethereum_light_node.send(best_block_number_response)
                 best_block_number = self.get_best_block_number(best_block_number_response)
-                best_block_hash_payload = self.ethereum_p2p.create_getblock_by_number_payload(best_block_number)
-                best_block_hash_message = self.ethereum_p2p.create_message(best_block_hash_payload)
-                self.ethereum_p2p.send_message(node, best_block_hash_message)
-                best_block_hash_response = self.ethereum_p2p.receive_message(node)
-                best_block_hash = self.get_best_block_hash(best_block_hash_response)
-                self.ethereum.best_block_hashes.append(best_block_hash)
-                self.ethereum.best_block_numbers.append(best_block_number)
-                self.ethereum.prev_block_numbers.append(best_block_number - 1)
-                self.ethereum.prev_block_hashes.append(self.get_previous_block_hash(best_block_hash_response))
-            else:
-                best_block_hash = None
-                best_block_number = None
-                prev_block_number = None
-                prev_block_hash = None
-                self.ethereum.best_block_hashes.append(best_block_hash)
-                self.ethereum.best_block_numbers.append(best_block_number)
-                self.ethereum.prev_block_hashes.append(prev_block_hash)
-                self.ethereum.prev_block_numbers.append(prev_block_number)
-            node.close()
+                if isinstance(best_block_number, int):
+                    best_block_hash_payload = self.ethereum_p2p.create_getblock_by_number_payload(best_block_number)
+                    best_block_hash_message = self.ethereum_p2p.create_message(best_block_hash_payload)
+                    self.ethereum_p2p.send_message(node, best_block_hash_message)
+                    best_block_hash_response = self.ethereum_p2p.receive_message(node)
+                    self.ethereum_light_node.send(best_block_hash_response)
+                    best_block_hash = self.get_best_block_hash(best_block_hash_response)
+                    prev_block_number = best_block_number - 1
+                    prev_block_hash = self.get_previous_block_hash(best_block_hash_response)
+        self.ethereum.best_block_hashes.append(best_block_hash)
+        self.ethereum.best_block_numbers.append(best_block_number)
+        self.ethereum.prev_block_hashes.append(prev_block_hash)
+        self.ethereum.prev_block_numbers.append(prev_block_number)
+        node.close()
 
     def handle_node_listening_status(self, response):
         status = str
@@ -94,7 +95,7 @@ class EthereumNodeThread(BaseThread):
             return message
 
     def get_best_block_hash(self, response) -> any:
-        if len(response) != 0:
+        if response:
             best_block_hash = self.decode_response_message(response)['result']['hash']
         else:
             best_block_hash = None
@@ -102,7 +103,7 @@ class EthereumNodeThread(BaseThread):
         return best_block_hash
 
     def get_best_block_number(self, response):
-        if len(response) != 0:
+        if response:
             best_block_number = self.decode_response_message(response)['result']
             best_block_number = int(best_block_number, 16)
         else:
@@ -111,7 +112,7 @@ class EthereumNodeThread(BaseThread):
         return best_block_number
 
     def get_previous_block_hash(self, response):
-        if len(response) != 0:
+        if response:
             previous_block_hash = self.decode_response_message(response)['result']['parentHash']
         else:
             previous_block_hash = None
