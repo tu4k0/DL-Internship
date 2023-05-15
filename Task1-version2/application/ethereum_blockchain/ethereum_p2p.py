@@ -14,12 +14,6 @@ class EthereumP2P(BaseBlockchain):
     def __init__(self):
         super().__init__()
 
-    def set_node(self):
-        super().set_node()
-        self.node.bind(('', ETHEREUM_MAINNET_PORT))
-
-        return self.node
-
     def create_message(self, payload) -> bytes:
         request_method = f"POST / HTTP/1.1\r\n"
         host = f"Host: {HOST}\r\n"
@@ -40,12 +34,12 @@ class EthereumP2P(BaseBlockchain):
 
         return tx_getdata_message
 
-    def create_getblock_by_number_payload(self, block_number) -> dict[str, str | list]:
+    def create_getblock_by_number_payload(self, block_number: int) -> dict[str, str | list]:
         command = 'eth_getBlockByNumber'
         block_number_message = {
             'jsonrpc': JSON_VERSION,
             'method': command,
-            'params': [hex(int(block_number)), False],
+            'params': [hex(block_number), False],
             'id': JSON_ID
         }
 
