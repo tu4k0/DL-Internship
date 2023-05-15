@@ -6,12 +6,10 @@ from abc import abstractmethod, ABC
 
 class BaseBlockchain(ABC):
     socket: socket
-    node: socket
     ip_address: str
     port: int
     requests: int
     responses: int
-    commands: list
 
     def __init__(self):
         self.requests = 0
@@ -42,23 +40,7 @@ class BaseBlockchain(ABC):
         else:
             raise Exception('Failed to set socket')
 
-    def set_node(self) -> socket.socket:
-        self.node = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-
-    def get_connections(self, node_num) -> str:
-        if self.node is None:
-            raise Exception('Node not set yet')
-        else:
-            self.node.listen(node_num)
-            conn, address = self.node.accept()
-            print("Connection from: " + str(address))
-            while True:
-                data = conn.recv(4096).decode()
-                if not data:
-                    break
-                return data
-
-    def connect_node(self, node, ip_address, port) -> str:
+    def connect(self, node, ip_address, port) -> str:
         node.settimeout(0.5)
         try:
             node.connect((ip_address, port))
@@ -67,7 +49,7 @@ class BaseBlockchain(ABC):
         finally:
             return ip_address
 
-    def disconnect_node(self, node) -> None:
+    def disconnect(self, node) -> None:
         node.close()
 
     def send_message(self, node, message):
