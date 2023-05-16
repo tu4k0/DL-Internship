@@ -2,6 +2,7 @@ import csv
 import sys
 import time
 
+from application.database.database import Database
 from application.ethereum_blockchain.ethereum_config import NODES_LIST_CSV
 from application.ethereum_blockchain.ethereum import Ethereum
 from application.ethereum_blockchain.ethereum_node import EthereumNode
@@ -24,14 +25,14 @@ class EthereumService:
         self.port = user_request[1]
         self.node_number = user_request[2]
 
-    def get_nodes_from_csv(self) -> dict[str, int]:
+    def get_nodes_from_csv(self, ip, port) -> dict[str, int]:
         found_peers = dict()
-        found_peers.update({self.ip: self.port})
+        found_peers.update({ip: port})
         search_index = 0
         with open(NODES_LIST_CSV, 'r') as nodes:
             nodes = csv.reader(nodes)
             for node_info in nodes:
-                if search_index == self.node_number:
+                if search_index == self.node_number+1:
                     break
                 else:
                     if search_index == 0:
@@ -56,11 +57,14 @@ class EthereumService:
         if not ping_response:
             sys.exit('Node not responding')
         ethereum_light_node.send(ping_response)
-        nodes = self.get_nodes_from_csv()
+        found_peers = self.get_nodes_from_csv(self.ip, self.port)
+        for ip, port in found_peers.items():
+            if not Database.node.find_one({'ip_address': ip, 'port': port}):
+                Database.insert_node('ethereum', ip, port, False)
         while 1:
             start_time = time.perf_counter()
             node_threads = []
-            for ip, port in nodes.items():
+            for ip, port in found_peers.items():
                 node = EthereumNodeThread(ip, port, self.ethereum, self.ethereum_p2p, ethereum_light_node)
                 node.start()
                 node_threads.append(node)

@@ -2,9 +2,9 @@ import binascii
 import socket
 import sys
 import time
-
 import ipaddress
 
+from application.database.database import Database
 from application.bitcoin_blockchain.bitcoin_config import DNS_SEEDS, BITCOIN_GETADDR_COMMAND_HEX
 from application.bitcoin_blockchain.bitcoin import Bitcoin
 from application.bitcoin_blockchain.bitcoin_node import BitcoinNode
@@ -27,7 +27,7 @@ class BitcoinService:
         self.port = user_request[1]
         self.node_number = user_request[2]
 
-    def start_session(self, database):
+    def start_session(self):
         bitcoin_light_node = BitcoinNode()
         bitcoin_light_node.connect()
         node = self.bitcoin_p2p.set_socket()
@@ -63,13 +63,13 @@ class BitcoinService:
         else:
             sys.exit('Unable to create socket')
         for ip, port in found_peers.items():
-            if not database.node.find_one({'blockchain_type': 'bitcoin', 'ip_address': ip}):
-                database.insert_node('bitcoin', ip, port, False)
+            if not Database.node.find_one({'ip_address': ip, 'port': port}):
+                Database.insert_node('bitcoin', ip, port, False)
         while 1:
             start_time = time.perf_counter()
             node_threads = []
             for ip, port in found_peers.items():
-                node = BitcoinNodeThread(ip, port, self.bitcoin, self.bitcoin_p2p, bitcoin_light_node, database)
+                node = BitcoinNodeThread(ip, port, self.bitcoin, self.bitcoin_p2p, bitcoin_light_node)
                 node.start()
                 node_threads.append(node)
             for node in node_threads:
@@ -77,7 +77,7 @@ class BitcoinService:
             bitcoin_statistic = BitcoinStatistic(self.bitcoin, self.bitcoin_p2p)
             bitcoin_statistic.set_amount_sent_messages()
             bitcoin_statistic.set_amount_received_messages()
-            bitcoin_statistic.print_blockchain_info(database)
+            bitcoin_statistic.print_blockchain_info()
             avg_processing_time = time.perf_counter() - start_time
             if avg_processing_time > 5:
                 time.sleep(5)

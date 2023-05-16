@@ -9,8 +9,9 @@ class BlockchainModel:
     confirmed_nodes_2: int
     sent_messages: int
     received_messages: int
+    created_at: str
 
-    def __init__(self, blockchain_type, active_connections, last_block, last_block_hash, confirmed_nodes_1, previous_block, previous_block_hash, confirmed_nodes_2, sent_messages, received_messages):
+    def __init__(self, blockchain_type, active_connections, last_block, last_block_hash, confirmed_nodes_1, previous_block, previous_block_hash, confirmed_nodes_2, sent_messages, received_messages, created_at):
         self.blockchain_type = blockchain_type
         self.active_connections = active_connections
         self.last_block = last_block
@@ -21,6 +22,7 @@ class BlockchainModel:
         self.confirmed_nodes_2 = confirmed_nodes_2
         self.sent_messages = sent_messages
         self.received_messages = received_messages
+        self.created_at = created_at
 
     def set_info(self):
         return dict({
@@ -34,4 +36,5 @@ class BlockchainModel:
             "confirmed_nodes_2": self.confirmed_nodes_2,
             "sent_messages": self.sent_messages,
             "received_messages": self.received_messages,
+            "created_at": self.created_at
         })

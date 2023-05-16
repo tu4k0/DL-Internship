@@ -5,12 +5,10 @@ from application.database.database import Database
 class BitcoinController:
     user_request: list
     bitcoin_service: BitcoinService
-    database: Database
 
-    def __init__(self, user_request, database):
+    def __init__(self, user_request):
         self.user_request = user_request
         self.bitcoin_service = BitcoinService(user_request)
-        self.database = database
 
     def start_data_collecting_session(self):
-        self.bitcoin_service.start_session(self.database)
+        self.bitcoin_service.start_session()
