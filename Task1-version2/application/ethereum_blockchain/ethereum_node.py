@@ -13,4 +13,4 @@ class EthereumNode(BaseNode):
         self.node.bind((self.ip, self.port))
 
     def present_messages(self, data):
-        print(data)
+        print(f'{data}\n')

@@ -1,5 +1,6 @@
 import binascii
 import requests
+from typing import Tuple
 
 from application.database.database import Database
 from application.bitcoin_blockchain.bitcoin import Bitcoin
@@ -47,31 +48,41 @@ class BitcoinNodeThread(BaseThread):
                 self.bitcoin.prev_block_hashes.append(prev_block_hash)
                 self.bitcoin.prev_block_numbers.append(prev_block_number)
             else:
-                Database.update_node_status(self.ip, self.port, True)
-                self.bitcoin.active_connections += 1
                 self.bitcoin_p2p.send_message(node, verack_message)
                 response_data = self.bitcoin_p2p.receive_message(node)
-                self.bitcoin_light_node.send(response_data)
-                self.bitcoin_p2p.send_message(node, getdata_message)
-                while 1:
-                    if str(response_data).find('getheaders') != -1:
-                        getheaders = binascii.hexlify(response_data)
-                        getheaders_index = str(getheaders).find(BITCOIN_GETHEADERS_COMMAND_HEX)
-                        if len(getheaders[getheaders_index - 2:]) == 40:
-                            response_data += self.bitcoin_p2p.receive_message(node)
-                            self.bitcoin_light_node.send(response_data)
-                        best_block_hash, prev_block_hash = self.handle_getheaders_message(response_data)
-                        break
-                    else:
-                        response_data = self.bitcoin_p2p.receive_message(node)
-                best_block_number = self.get_best_block_height(best_block_hash)
-                self.bitcoin.best_block_hashes.append(best_block_hash)
-                self.bitcoin.best_block_numbers.append(best_block_number)
-                self.bitcoin.prev_block_numbers.append(best_block_number - 1)
-                self.bitcoin.prev_block_hashes.append(prev_block_hash)
+                if not response_data:
+                    best_block_hash = None
+                    best_block_number = None
+                    prev_block_number = None
+                    prev_block_hash = None
+                    self.bitcoin.best_block_hashes.append(best_block_hash)
+                    self.bitcoin.best_block_numbers.append(best_block_number)
+                    self.bitcoin.prev_block_hashes.append(prev_block_hash)
+                    self.bitcoin.prev_block_numbers.append(prev_block_number)
+                else:
+                    Database.update_node_status(self.ip, self.port, True)
+                    self.bitcoin.active_connections += 1
+                    self.bitcoin_light_node.send(response_data)
+                    self.bitcoin_p2p.send_message(node, getdata_message)
+                    while 1:
+                        if str(response_data).find('getheaders') != -1:
+                            getheaders = binascii.hexlify(response_data)
+                            getheaders_index = str(getheaders).find(BITCOIN_GETHEADERS_COMMAND_HEX)
+                            if len(getheaders[getheaders_index - 2:]) == 40:
+                                response_data += self.bitcoin_p2p.receive_message(node)
+                                self.bitcoin_light_node.send(response_data)
+                            best_block_hash, prev_block_hash = self.handle_getheaders_message(response_data)
+                            break
+                        else:
+                            response_data = self.bitcoin_p2p.receive_message(node)
+                    best_block_number = self.get_best_block_height(best_block_hash)
+                    self.bitcoin.best_block_hashes.append(best_block_hash)
+                    self.bitcoin.best_block_numbers.append(best_block_number)
+                    self.bitcoin.prev_block_numbers.append(best_block_number - 1)
+                    self.bitcoin.prev_block_hashes.append(prev_block_hash)
             node.close()
 
-    def handle_getheaders_message(self, response_data) -> tuple[str, str]:
+    def handle_getheaders_message(self, response_data) -> Tuple[str, str]:
         info = binascii.hexlify(response_data)
         index = str(info).find(BITCOIN_GETHEADERS_COMMAND_HEX)
         starting_hash = str(info)[index + 50:]
