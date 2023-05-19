@@ -79,16 +79,20 @@ class EthereumService:
     def start_session(self):
         ethereum_light_node = EthereumNode()
         ethereum_light_node.connect()
+        ping_payload = self.ethereum_p2p.create_ping_payload()
+        ping_message = self.ethereum_p2p.create_message(ping_payload)
         version_payload = self.ethereum_p2p.create_version_payload()
         version_message = self.ethereum_p2p.create_message(version_payload)
         node = self.ethereum_p2p.set_socket()
         connection = self.ethereum_p2p.connect(node, self.ip, self.port)
         if not connection:
             sys.exit('Unable to create connection with node')
+        self.ethereum_p2p.send_message(node, ping_message)
+        ping_response = self.ethereum_p2p.receive_message(node)
+        if not ping_response:
+            sys.exit('Node not responding')
         self.ethereum_p2p.send_message(node, version_message)
         version_response = self.ethereum_p2p.receive_message(node)
-        if not version_response:
-            sys.exit('Node not responding')
         ethereum_light_node.send(version_response)
         network_id = self.get_network_id(version_response)
         self.handle_ethereum_network(network_id)
