@@ -62,9 +62,6 @@ class BitcoinService:
             node.close()
         else:
             sys.exit('Unable to create socket')
-        for ip, port in found_peers.items():
-            if not Database.node.find_one({'ip_address': ip, 'port': port}):
-                Database.insert_node('bitcoin', ip, port, False)
         while 1:
             start_time = time.perf_counter()
             node_threads = []
@@ -75,9 +72,8 @@ class BitcoinService:
             for node in node_threads:
                 node.stop()
             bitcoin_statistic = BitcoinStatistic(self.bitcoin, self.bitcoin_p2p)
-            bitcoin_statistic.set_amount_sent_messages()
-            bitcoin_statistic.set_amount_received_messages()
-            bitcoin_statistic.print_blockchain_info()
+            bitcoin_statistic.collect_blockchain_info()
+            bitcoin_statistic.print_statistic()
             avg_processing_time = time.perf_counter() - start_time
             if avg_processing_time > 5:
                 time.sleep(5)
@@ -99,9 +95,11 @@ class BitcoinService:
             else:
                 peer = str(ipaddress.IPv6Address(bytes(response_data[node_info_size:node_info_size + 16])).ipv4_mapped)
                 port = binascii.hexlify(response_data[node_info_size + 16:node_info_size + 18])
-                if int(port, 16) == 8333:
-                    found_nodes.update({peer: 8333})
+                found_nodes.update({peer: int(port, 16)})
                 node_info_size += 30
+        for ip, port in found_nodes.items():
+            if not Database.node.find_one({'ip_address': ip, 'port': port}):
+                Database.insert_node('bitcoin', ip, port, False)
 
         return found_nodes
 

@@ -2,7 +2,7 @@ import json
 import socket
 
 from application.base_blockchain.base_blockchain import BaseBlockchain
-from application.ethereum_blockchain.ethereum_config import HOST, ETHEREUM_MAINNET_PORT, JSON_VERSION, JSON_ID
+from application.ethereum_blockchain.ethereum_config import HOST, JSON_VERSION, JSON_ID
 
 
 class EthereumP2P(BaseBlockchain):
@@ -165,6 +165,17 @@ class EthereumP2P(BaseBlockchain):
         }
 
         return net_listening_message
+
+    def create_version_payload(self) -> dict[str, str | list]:
+        method = 'net_version'
+        version_message = {
+            'jsonrpc': '2.0',
+            'id': '1',
+            'method': method,
+            'params': []
+        }
+
+        return version_message
 
     def create_net_peer_count_payload(self) -> dict[str, str | list]:
         command = 'net_peerCount'

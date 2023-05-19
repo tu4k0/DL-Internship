@@ -63,5 +63,5 @@ class Database:
         Database.blockchain.delete_many({'blockchain_type': blockchain_type})
 
     @staticmethod
-    def update_node_status(ip, port, status):
-        Database.node.update_one({"ip_address": ip, "port": port}, {"$set": {"connection_status": status}})
+    def update_node_status(ip, blockchain_type, status):
+        Database.node.update_one({"ip_address": ip, "blockchain_type": blockchain_type}, {"$set": {"connection_status": status}})

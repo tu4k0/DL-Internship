@@ -60,7 +60,7 @@ class BitcoinNodeThread(BaseThread):
                     self.bitcoin.prev_block_hashes.append(prev_block_hash)
                     self.bitcoin.prev_block_numbers.append(prev_block_number)
                 else:
-                    Database.update_node_status(self.ip, self.port, True)
+                    Database.update_node_status(self.ip, 'bitcoin', True)
                     self.bitcoin.active_connections += 1
                     self.bitcoin_light_node.send(response_data)
                     self.bitcoin_p2p.send_message(node, getdata_message)

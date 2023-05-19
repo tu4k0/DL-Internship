@@ -2,8 +2,8 @@ import sys
 
 from application.bitcoin_blockchain.bitcoin_controller import BitcoinController
 from application.ethereum_blockchain.ethereum_controller import EthereumController
-from application.bitcoin_blockchain.bitcoin_config import BITCOIN_MAINNET_PORT
-from application.ethereum_blockchain.ethereum_config import ETHEREUM_MAINNET_PORT
+from application.bitcoin_blockchain.bitcoin_config import BITCOIN_PORT
+from application.ethereum_blockchain.ethereum_config import ETHEREUM_PORT
 
 
 class CLI:
@@ -18,10 +18,10 @@ class CLI:
         port = int(node[1])
         node_number = int(self.cli_arguments[2])
         user_request = [ip_address, port, node_number]
-        if port == BITCOIN_MAINNET_PORT:
+        if port == BITCOIN_PORT:
             bitcoin_controller = BitcoinController(user_request)
             bitcoin_controller.start_data_collecting_session()
-        elif port == ETHEREUM_MAINNET_PORT:
+        elif port == ETHEREUM_PORT:
             ethereum_controller = EthereumController(user_request)
             ethereum_controller.start_data_collecting_session()
         else:

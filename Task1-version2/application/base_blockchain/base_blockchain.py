@@ -40,7 +40,7 @@ class BaseBlockchain(ABC):
         else:
             raise Exception('Failed to set socket')
 
-    def connect(self, node, ip_address, port) -> str:
+    def connect(self, node, ip_address, port) -> bool:
         node.settimeout(0.5)
         try:
             node.connect((ip_address, port))
@@ -54,8 +54,8 @@ class BaseBlockchain(ABC):
 
     def send_message(self, node, message):
         try:
-            node.send(message)
             self.requests += 1
+            node.send(message)
         except OSError:
             pass
 

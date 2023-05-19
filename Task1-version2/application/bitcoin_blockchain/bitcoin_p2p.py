@@ -5,7 +5,7 @@ import struct
 import time
 
 from application.base_blockchain.base_blockchain import BaseBlockchain
-from application.bitcoin_blockchain.bitcoin_config import BITCOIN_MAINNET_VERSION, BITCOIN_MAINNET_PORT, BITCOIN_MAINNET_MAGIC, BITCOIN_DEFAULT_CHECKSUM, BITCOIN_USER_AGENT, BITCOIN_IPV4_SUBNET, BITCOIN_GENESIS_BLOCK
+from application.bitcoin_blockchain.bitcoin_config import BITCOIN_MAINNET_VERSION, BITCOIN_MAINNET_MAGIC, BITCOIN_DEFAULT_CHECKSUM, BITCOIN_USER_AGENT, BITCOIN_IPV4_SUBNET, BITCOIN_GENESIS_BLOCK
 
 
 class BitcoinP2P(BaseBlockchain):

@@ -33,7 +33,7 @@ class EthereumNodeThread(BaseThread):
             ping_response = self.ethereum_p2p.receive_message(node)
             status = self.handle_node_listening_status(ping_response)
             if status:
-                Database.update_node_status(self.ip, self.port, True)
+                Database.update_node_status(self.ip, self.ethereum.blockchain_type, True)
                 self.ethereum_light_node.send(ping_response)
                 self.ethereum.active_connections += 1
                 best_block_number_payload = self.ethereum_p2p.create_best_block_height_payload()
