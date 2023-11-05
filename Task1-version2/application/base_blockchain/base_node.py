@@ -19,7 +19,7 @@ class BaseNode(ABC):
         pass
 
     @abstractmethod
-    def present_messages(self, data):
+    def present_messages(self, *data):
         pass
 
     def connect(self) -> str:

@@ -3,13 +3,21 @@ import socket
 import sys
 import time
 import json
-
 import threading
+import unittest
+
+
+def get_csv_file_path():
+    file_path = __file__.split('\\')
+    for i in range(len(file_path)):
+        if file_path[i] == 'Task1-version2':
+            result_path = file_path[:i+1]
+    return '\\'.join(result_path) + '\\application\ethereum_blockchain\ethereum_based_nodes_lists\ethereum-nodestrackerlist.csv'
+
 
 amount_sent_messages = 0
 amount_received_messages = 0
-nodes_list = 'C:/Users/Admin/Desktop/Tu4k0/DL-Internship/Task1-version2/application/ethereum_blockchain/ethereum-nodestrackerlist.csv'
-
+nodes_list = get_csv_file_path()
 
 def set_socket() -> socket.socket:
     node = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -77,6 +85,7 @@ class NodeThread(threading.Thread):
             response = receive_message(node)
             status = handle_node_listening_status(response)
             if status == True:
+                print('1', self.ip, self.port)
                 best_block_number_payload = create_best_block_height_payload()
                 best_block_number_message = create_message(best_block_number_payload)
                 send_message(node, best_block_number_message)
@@ -197,23 +206,20 @@ def handle_node_listening_status(response):
 
 def collect_ethereum_data_multithread(ip, port, node_number):
     nodes = get_nodes(ip, port, node_number)
-    while True:
-        start_time = time.perf_counter()
-        node_threads = []
-        for ip, port in nodes.items():
-            node = NodeThread(ip, port)
-            node.start()
-            node_threads.append(node)
-        for node in node_threads:
-            node.join()
-        statistic_thread = NodeThread(None, None)
-        statistic_thread.start()
-        statistic_thread.collect_statistic()
-        statistic_thread.clear_statistic()
-        statistic_thread.join()
-        print('(multithread) Retrieving Ethereum blockchain data execution time: ', time.perf_counter() - start_time)
-        time.sleep(2)
-        delete_last_lines(5)
+    node_threads = []
+    for ip, port in nodes.items():
+        node = NodeThread(ip, port)
+        node.start()
+        node_threads.append(node)
+    for node in node_threads:
+        node.join()
+    statistic_thread = NodeThread(None, None)
+    statistic_thread.start()
+    statistic_thread.collect_statistic()
+    statistic_thread.clear_statistic()
+    statistic_thread.join()
+    time.sleep(2)
+    delete_last_lines(5)
 
 
 def decode_response_message(response):
@@ -269,8 +275,16 @@ def delete_last_lines(n):
         sys.stdout.write(ERASE_LINE)
 
 
+class Tests(unittest.TestCase):
+    def test_ethereum_optimization(self):
+        ip_address = '65.109.22.107'
+        port = 8545
+        node_number = 3
+        start = time.perf_counter()
+        collect_ethereum_data_multithread(ip_address, port, node_number)
+        end = time.perf_counter()
+        self.assertLess(end-start, 3)
+
+
 if __name__ == '__main__':
-    ip_address = str(input('Enter node ip: '))
-    port = int(input('Enter port: '))
-    node_number = int(input('Enter node number: '))
-    collect_ethereum_data_multithread(ip_address, port, node_number)
+    unittest.main()

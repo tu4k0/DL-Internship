@@ -14,7 +14,7 @@ class EthereumP2P(BaseBlockchain):
     def __init__(self):
         super().__init__()
 
-    def create_message(self, payload) -> bytes:
+    def create_message(self, payload: bytes) -> bytes:
         request_method = f"POST / HTTP/1.1\r\n"
         host = f"Host: {HOST}\r\n"
         content_type = f"Content-Type: application/json\r\n"
@@ -23,7 +23,7 @@ class EthereumP2P(BaseBlockchain):
 
         return message
 
-    def create_getdata_payload(self, tx_id) -> dict[str, str | list]:
+    def create_getdata_payload(self, tx_id: str) -> dict[str, str | list]:
         command = 'eth_getTransactionByHash'
         tx_getdata_message = {
             'jsonrpc': JSON_VERSION,
@@ -45,7 +45,7 @@ class EthereumP2P(BaseBlockchain):
 
         return block_number_message
 
-    def create_getblock_by_hash_payload(self, block_hash) -> dict[str, str | list]:
+    def create_getblock_by_hash_payload(self, block_hash: str) -> dict[str, str | list]:
         command = 'eth_getBlockByHash'
         block_hash_message = {
             'jsonrpc': JSON_VERSION,
@@ -56,7 +56,7 @@ class EthereumP2P(BaseBlockchain):
 
         return block_hash_message
 
-    def create_getblock_tx_number_payload(self, block_number) -> dict[str, str | list]:
+    def create_getblock_tx_number_payload(self, block_number: int) -> dict[str, str | list]:
         command = 'eth_getBlockTransactionCountByNumber'
         block_tx_number_message = {
             'jsonrpc': JSON_VERSION,
@@ -67,7 +67,7 @@ class EthereumP2P(BaseBlockchain):
 
         return block_tx_number_message
 
-    def create_get_tx_by_hash_payload(self, tx_hash) -> dict[str, str | list]:
+    def create_get_tx_by_hash_payload(self, tx_hash: str) -> dict[str, str | list]:
         command = 'eth_getTransactionByHash'
         tx_hash_message = {
             'jsonrpc': JSON_VERSION,

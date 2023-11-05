@@ -14,7 +14,13 @@ class EthereumNodeThread(BaseThread):
     ethereum_p2p: EthereumP2P
     ethereum_light_node: EthereumNode
 
-    def __init__(self, ip, port, ethereum: Ethereum, ethereum_p2p: EthereumP2P, ethereum_light_node: EthereumNode):
+    def __init__(
+            self,
+            ip: str,
+            port: int,
+            ethereum: Ethereum,
+            ethereum_p2p: EthereumP2P,
+            ethereum_light_node: EthereumNode):
         super().__init__()
         self.ip = ip
         self.port = port
@@ -57,7 +63,7 @@ class EthereumNodeThread(BaseThread):
         self.ethereum.prev_block_numbers.append(prev_block_number)
         node.close()
 
-    def handle_node_listening_status(self, response):
+    def handle_node_listening_status(self, response: bytes):
         status = str
         if len(response) != 0:
             response = str(response)
@@ -71,7 +77,7 @@ class EthereumNodeThread(BaseThread):
 
         return status
 
-    def decode_response_message(self, response):
+    def decode_response_message(self, response: bytes):
         message = {}
         response = response.decode('utf-8')
         if not response:
@@ -96,7 +102,7 @@ class EthereumNodeThread(BaseThread):
 
             return message
 
-    def get_best_block_hash(self, response) -> any:
+    def get_best_block_hash(self, response: bytes) -> dict | None:
         if response:
             best_block_hash = self.decode_response_message(response)['result']['hash']
         else:
@@ -104,7 +110,7 @@ class EthereumNodeThread(BaseThread):
 
         return best_block_hash
 
-    def get_best_block_number(self, response):
+    def get_best_block_number(self, response: bytes) -> int | None:
         if response:
             best_block_number = self.decode_response_message(response)['result']
             best_block_number = int(best_block_number, 16)
@@ -113,7 +119,7 @@ class EthereumNodeThread(BaseThread):
 
         return best_block_number
 
-    def get_previous_block_hash(self, response):
+    def get_previous_block_hash(self, response: bytes) -> str | None:
         if response:
             previous_block_hash = self.decode_response_message(response)['result']['parentHash']
         else:

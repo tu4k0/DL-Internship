@@ -19,7 +19,7 @@ class EthereumService:
     ethereum: Ethereum
     ethereum_p2p: EthereumP2P
 
-    def __init__(self, user_request):
+    def __init__(self, user_request: list):
         self.ethereum = Ethereum()
         self.ethereum_p2p = EthereumP2P()
         self.ip = user_request[0]
@@ -49,7 +49,7 @@ class EthereumService:
 
         return found_peers
 
-    def get_network_id(self, response) -> int:
+    def get_network_id(self, response: bytes) -> int:
         response = response.decode('utf-8')
         if not response:
             network_id = None
@@ -60,7 +60,7 @@ class EthereumService:
 
         return network_id
 
-    def handle_ethereum_network(self, network_id):
+    def handle_ethereum_network(self, network_id: int):
         if network_id == ETHEREUM_MAINNET_NETWORK_ID:
             self.ethereum.network_id = ETHEREUM_MAINNET_NETWORK_ID
             self.ethereum.blockchain_type = 'ethereum'

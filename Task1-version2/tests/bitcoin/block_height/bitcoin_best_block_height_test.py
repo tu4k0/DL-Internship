@@ -1,22 +1,15 @@
+import unittest
 import requests
-import time
 
-start = time.time()
 
-block_hash = "00000000000000000002b2f7538a2b5e771149adccae9871f6d2a7e53b5007b7"
+class Tests(unittest.TestCase):
+    def test_bitcoin_block_height(self):
+        block_hash = "0000000000000000000505ab2c8ce35d3dc09e161141d86bb618f616d1326c6b"
+        block_height_message = f"https://blockstream.info/api/block/{block_hash}"
+        response = requests.get(block_height_message)
+        block_height = response.json()['height']
+        self.assertEqual(block_height, 787763)
 
-# Create the URL for the API request
-block_height_message = f"https://blockstream.info/api/block/{block_hash}"
 
-# Send the request and get the response
-response = requests.get(block_height_message)
-
-# Extract the block height from the response JSON
-block_height = response.json()['height']
-
-result = time.time() - start
-
-# Print Results
-print("Block hash:", block_hash)
-print("Block height:", block_height)
-print("Program time: ", result)
+if __name__ == '__main__':
+    unittest.main()

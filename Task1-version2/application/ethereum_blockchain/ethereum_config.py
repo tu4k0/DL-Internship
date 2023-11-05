@@ -1,10 +1,11 @@
-ETHEREUM_NODES_LIST = 'C:/Users/Admin/Desktop/Tu4k0/DL-Internship/Task1-version2/application/ethereum_blockchain' \
+# Absolute path to ethereum_based_nodes_lists csv files
+ETHEREUM_NODES_LIST = '.../DL-Internship/Task1-version2/application/ethereum_blockchain' \
                       '/ethereum_based_nodes_lists/ethereum-nodestrackerlist.csv '
 
-POLYGON_NODES_LIST = 'C:/Users/Admin/Desktop/Tu4k0/DL-Internship/Task1-version2/application/ethereum_blockchain' \
+POLYGON_NODES_LIST = '.../DL-Internship/Task1-version2/application/ethereum_blockchain' \
                      '/ethereum_based_nodes_lists/polygon-nodestrackerlist.csv '
 
-BSC_NODES_LIST = 'C:/Users/Admin/Desktop/Tu4k0/DL-Internship/Task1-version2/application/ethereum_based_blockchains' \
+BSC_NODES_LIST = '.../DL-Internship/Task1-version2/application/ethereum_based_blockchains' \
                  '/ethereum_based_nodes_lists/bsc-nodestrackerlist.csv '
 
 ETHEREUM_MAINNET_NETWORK_ID = 1

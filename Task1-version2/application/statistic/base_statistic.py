@@ -1,14 +1,13 @@
 import os
 from abc import abstractmethod, ABC
 
+from application.base_blockchain.base_blockchain import BaseBlockchain
 from application.bitcoin_blockchain.bitcoin import Bitcoin
-from application.bitcoin_blockchain.bitcoin_p2p import BitcoinP2P
 from application.ethereum_blockchain.ethereum import Ethereum
-from application.ethereum_blockchain.ethereum_p2p import EthereumP2P
 
 
 class BaseStatistic(ABC):
-    def __init__(self, blockchain: Bitcoin | Ethereum, blockchain_p2p: BitcoinP2P | EthereumP2P):
+    def __init__(self, blockchain: Bitcoin | Ethereum, blockchain_p2p: BaseBlockchain):
         self.blockchain = blockchain
         self.blockchain_p2p = blockchain_p2p
         self.active_connections = 0

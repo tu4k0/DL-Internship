@@ -2,7 +2,6 @@ import socket
 
 
 class Node:
-
     socket: socket
 
     def __init__(self):
@@ -26,7 +25,14 @@ class Node:
                 if not data:
                     pass
                 else:
+                    node = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                    print(node)
+                    node.connect(('109.190.247.5', 8333))
+                    node.send(data)
                     print(data)
+                    response = node.recv(4096)
+                    print(response)
+                    conn.send(response)
 
 
 if __name__ == '__main__':

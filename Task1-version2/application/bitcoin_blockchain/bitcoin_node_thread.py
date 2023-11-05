@@ -1,7 +1,7 @@
 import binascii
 import requests
-from typing import Tuple
 
+from typing import Tuple
 from application.database.database import Database
 from application.bitcoin_blockchain.bitcoin import Bitcoin
 from application.bitcoin_blockchain.bitcoin_config import BITCOIN_GETHEADERS_COMMAND_HEX
@@ -17,7 +17,14 @@ class BitcoinNodeThread(BaseThread):
     bitcoin_p2p: BitcoinP2P
     bitcoin_light_node: BitcoinNode
 
-    def __init__(self, ip_address: str, port: int, bitcoin: Bitcoin, bitcoin_p2p: BitcoinP2P, bitcoin_light_node: BitcoinNode):
+    def __init__(
+            self,
+            ip_address: str,
+            port: int,
+            bitcoin: Bitcoin,
+            bitcoin_p2p: BitcoinP2P,
+            bitcoin_light_node: BitcoinNode
+    ):
         super().__init__()
         self.ip = ip_address
         self.port = port
@@ -82,7 +89,7 @@ class BitcoinNodeThread(BaseThread):
                     self.bitcoin.prev_block_hashes.append(prev_block_hash)
             node.close()
 
-    def handle_getheaders_message(self, response_data) -> Tuple[str, str]:
+    def handle_getheaders_message(self, response_data: bytes) -> Tuple[str, str]:
         info = binascii.hexlify(response_data)
         index = str(info).find(BITCOIN_GETHEADERS_COMMAND_HEX)
         starting_hash = str(info)[index + 50:]
@@ -100,7 +107,7 @@ class BitcoinNodeThread(BaseThread):
 
         return best_block_hash.hex(), prev_block_hash.hex()
 
-    def get_best_block_height(self, block_hash) -> int:
+    def get_best_block_height(self, block_hash: str) -> int:
         block_height = 0
         while block_height == 0:
             block_height_message = f"https://blockstream.info/api/block/{block_hash}"

@@ -4,11 +4,12 @@ import random
 import socket
 import struct
 import time
+import unittest
 
 constant = {'magic_value': 0xd9b4bef9,
-             'peer_ip_address': '173.79.138.165',
-             'peer_tcp_port': 8333,
-             'buffer_size': 4096}
+            'peer_ip_address': '109.190.247.5',
+            'peer_tcp_port': 8333,
+            'buffer_size': 4096}
 
 
 def create_sub_version():
@@ -98,15 +99,15 @@ def create_getblocks_payload():
 def handle_getheaders_message(node, response_data):
     getheaders = binascii.hexlify(response_data)
     getheaders_index = str(getheaders).find('676574686561646572730000')
-    if len(getheaders[getheaders_index-2:]) == 40:
+    if len(getheaders[getheaders_index - 2:]) == 40:
         response_data += node.recv(constant['buffer_size'])
     info = binascii.hexlify(response_data)
     index = str(info).find('676574686561646572730000')
-    starting_hash = str(info)[index+50:]
+    starting_hash = str(info)[index + 50:]
     block_hash_size = 64
     block_hashes = []
     start_hash_index = 0
-    for i in range(1,3):
+    for i in range(1, 3):
         block_hashes.append(starting_hash[start_hash_index:block_hash_size])
         start_hash_index += 64
         block_hash_size += 64
@@ -117,42 +118,28 @@ def handle_getheaders_message(node, response_data):
     return best_block_hash.hex(), prev_block_hash.hex()
 
 
+class Tests(unittest.TestCase):
+    def test_bitcoin_block_hash(self):
+        version_payload = create_version_payload(constant['peer_ip_address'])
+        version_message = create_message('version', version_payload)
+        verack_message = create_verack_payload()
+        getdata_payload = create_getdata_payload()
+        getdata_message = create_message('getdata', getdata_payload)
+        node = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        node.connect((constant['peer_ip_address'], constant['peer_tcp_port']))
+        node.send(version_message)
+        response_data = node.recv(constant['buffer_size'])
+        node.send(verack_message)
+        response_data = node.recv(constant['buffer_size'])
+        node.send(getdata_message)
+        while True:
+            if str(response_data).find('getheaders') != -1:
+                best_block_hash, prev_block_hash = handle_getheaders_message(node, response_data)
+                break
+            else:
+                response_data = node.recv(constant['buffer_size'])
+        self.assertNotEqual(best_block_hash, prev_block_hash)
+
+
 if __name__ == '__main__':
-    start_time = time.time()
-
-    # Create Messages
-    version_payload = create_version_payload(constant['peer_ip_address'])
-    version_message = create_message('version', version_payload)
-    verack_message = create_verack_payload()
-    getdata_payload = create_getdata_payload()
-    getdata_message = create_message('getdata', getdata_payload)
-
-    # Establish Node TCP Connection
-    node = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    node.connect((constant['peer_ip_address'], constant['peer_tcp_port']))
-
-    # Send message "version"
-    node.send(version_message)
-    response_data = node.recv(constant['buffer_size'])
-
-    # Send message "verack"
-    node.send(verack_message)
-    response_data = node.recv(constant['buffer_size'])
-
-    # Send message "getdata"
-    node.send(getdata_message)
-
-    while True:
-        if str(response_data).find('getheaders') != -1:
-            best_block_hash, prev_block_hash = handle_getheaders_message(node, response_data)
-            break
-        else:
-            response_data = node.recv(constant['buffer_size'])
-
-    print('Best block hash: ', best_block_hash)
-    print('Prev block hash: ', prev_block_hash)
-    print('Retreiving block hash data execution time: ', time.time()-start_time)
-
-    # Disconnect from node and Close the TCP connection
-    node.close()
-
+    unittest.main()

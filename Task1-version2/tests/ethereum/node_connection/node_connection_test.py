@@ -1,12 +1,11 @@
 import socket
 import sys
-import time
 import json
+import unittest
 
-
-constant = {'peer_ip_address': '183.136.220.19',
-             'peer_tcp_port': 8545,
-             'buffer_size': 4096}
+constant = {'peer_ip_address': '183.36.220.19',
+            'peer_tcp_port': 8545,
+            'buffer_size': 4096}
 
 
 def create_message(message):
@@ -37,8 +36,8 @@ def handle_node_listening_status(response):
         response = str(response)
         result_index = response.find("result")
         if result_index != -1:
-            result = response[result_index+8:]
-            status = result[:result.find("}")]
+            result = response[result_index + 8:]
+            status = bool(result[:result.find("}")])
         return status
     else:
         status = False
@@ -53,7 +52,7 @@ def connect_node(node, ip_address, port):
         node.close()
         sys.exit(1)
     finally:
-        return ip_address
+        return True
 
 
 def send_message(node, message):
@@ -61,6 +60,7 @@ def send_message(node, message):
         node.send(message)
     except OSError:
         pass
+
 
 def receive_message(node):
     response = b''
@@ -71,27 +71,19 @@ def receive_message(node):
     finally:
         return response
 
+
+class Tests(unittest.TestCase):
+    def test_ethereum_node_connection(self):
+        listening_payload = create_net_listening_payload()
+        listening_message = create_message(listening_payload)
+        node = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        connect_node(node, constant['peer_ip_address'], constant['peer_tcp_port'])
+        send_message(node, listening_message)
+        response = receive_message(node)
+        status = handle_node_listening_status(response)
+        node.close()
+        self.assertIsNotNone(status)
+
+
 if __name__ == '__main__':
-    start_time = time.time()
-
-    # Create Messages
-    listening_payload = create_net_listening_payload()
-    listening_message = create_message(listening_payload)
-
-    # Establish Node TCP Connection
-    node = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    connect_node(node, constant['peer_ip_address'], constant['peer_tcp_port'])
-
-    #Send get block number message to ETH node
-    send_message(node, listening_message)
-
-    #Retreiving response
-    response = receive_message(node)
-    status = handle_node_listening_status(response)
-
-    #Show result
-    print('Retrieving Ethereum blockchain data execution time: ', time.time()-start_time)
-    print('Node listening status: ', status)
-
-    # Disconnect from node and Close the TCP connection
-    node.close()
+    unittest.main()

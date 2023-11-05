@@ -5,17 +5,15 @@ import socket
 import struct
 import sys
 import time
-import json
-
 import threading
-
 import ipaddress
+import unittest
 import requests
 
 amount_sent_messages = 0
 amount_received_messages = 0
 constant = {'magic_value': 0xd9b4bef9,
-            'peer_ip_address': '195.189.96.125',
+            'peer_ip_address': '109.190.247.5',
             'peer_tcp_port': 8333,
             'buffer_size': 4096}
 
@@ -273,55 +271,47 @@ def collect_bitcoin_data_singlethread():
             else:
                 response_data = receive_message(node)
         node.close()
-    while True:
-        start_time = time.time()
-        best_block_hashes = []
-        best_block_numbers = []
-        prev_block_hashes = []
-        prev_block_numbers = []
-        for ip, port in found_peers.items():
-            node = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            connection = connect_node(node, ip, port)
-            if connection:
-                version_payload = create_version_payload(constant['peer_ip_address'])
-                version_message = create_message('version', version_payload)
-                verack_message = create_verack_payload()
-                getdata_payload = create_getdata_payload()
-                getdata_message = create_message('getdata', getdata_payload)
-                send_message(node, version_message)
-                version_response = receive_message(node)
-                if not version_response:
-                    best_block_hash = None
-                    best_block_number = None
-                    prev_block_number = None
-                    prev_block_hash = None
-                    best_block_hashes.append(best_block_hash)
-                    best_block_numbers.append(best_block_number)
-                    prev_block_hashes.append(prev_block_hash)
-                    prev_block_numbers.append(prev_block_number)
-                    node.close()
-                else:
-                    send_message(node, verack_message)
-                    response_data = receive_message(node)
-                    send_message(node, getdata_message)
-                    while True:
-                        if str(response_data).find('getheaders') != -1:
-                            best_block_hash, prev_block_hash = handle_getheaders_message(node, response_data)
-                            break
-                        else:
-                            response_data = receive_message(node)
-                    best_block_number = get_best_block_height(best_block_hash)
-                    best_block_hashes.append(best_block_hash)
-                    best_block_numbers.append(best_block_number)
-                    prev_block_numbers.append(best_block_number - 1)
-                    prev_block_hashes.append(prev_block_hash)
-        print("last block:\t", best_block_numbers[0], "\thash: ", best_block_hashes[0], "nodes: ",
-              best_block_hashes.count(best_block_hashes[0]))
-        print("previous block:\t", prev_block_numbers[0], "\thash: ", prev_block_hashes[0], "nodes: ",
-              prev_block_hashes.count(prev_block_hashes[0]))
-        print("total number of sent messages:\t\t", amount_sent_messages)
-        print("total number of received messages:\t", amount_received_messages)
-        print('(singlethread) Retrieving Bitcoin blockchain data execution time: ', time.time() - start_time)
+    start_time = time.time()
+    best_block_hashes = []
+    best_block_numbers = []
+    prev_block_hashes = []
+    prev_block_numbers = []
+    for ip, port in found_peers.items():
+        node = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        connection = connect_node(node, ip, port)
+        if connection:
+            version_payload = create_version_payload(constant['peer_ip_address'])
+            version_message = create_message('version', version_payload)
+            verack_message = create_verack_payload()
+            getdata_payload = create_getdata_payload()
+            getdata_message = create_message('getdata', getdata_payload)
+            send_message(node, version_message)
+            version_response = receive_message(node)
+            if not version_response:
+                best_block_hash = None
+                best_block_number = None
+                prev_block_number = None
+                prev_block_hash = None
+                best_block_hashes.append(best_block_hash)
+                best_block_numbers.append(best_block_number)
+                prev_block_hashes.append(prev_block_hash)
+                prev_block_numbers.append(prev_block_number)
+                node.close()
+            else:
+                send_message(node, verack_message)
+                response_data = receive_message(node)
+                send_message(node, getdata_message)
+                while True:
+                    if str(response_data).find('getheaders') != -1:
+                        best_block_hash, prev_block_hash = handle_getheaders_message(node, response_data)
+                        break
+                    else:
+                        response_data = receive_message(node)
+                best_block_number = get_best_block_height(best_block_hash)
+                best_block_hashes.append(best_block_hash)
+                best_block_numbers.append(best_block_number)
+                prev_block_numbers.append(best_block_number - 1)
+                prev_block_hashes.append(prev_block_hash)
 
 
 def collect_bitcoin_data_multithread():
@@ -348,21 +338,19 @@ def collect_bitcoin_data_multithread():
             else:
                 response_data = receive_message(node)
         node.close()
-    while True:
-        start_time = time.time()
-        node_threads = []
-        for ip, port in found_peers.items():
-            node = NodeThread(ip, port)
-            node.start()
-            node_threads.append(node)
-        for node in node_threads:
-            node.join()
-        statistic_thread = NodeThread(None, None)
-        statistic_thread.start()
-        statistic_thread.collect_statistic()
-        statistic_thread.clear_statistic()
-        statistic_thread.join()
-        print('(multithread) Retrieving Bitcoin blockchain data execution time: ', time.time() - start_time)
+    start_time = time.time()
+    node_threads = []
+    for ip, port in found_peers.items():
+        node = NodeThread(ip, port)
+        node.start()
+        node_threads.append(node)
+    for node in node_threads:
+        node.join()
+    statistic_thread = NodeThread(None, None)
+    statistic_thread.start()
+    statistic_thread.collect_statistic()
+    statistic_thread.clear_statistic()
+    statistic_thread.join()
 
 
 def handle_getheaders_message(node, response_data):
@@ -394,11 +382,19 @@ def delete_last_lines(n):
         sys.stdout.write(CURSOR_UP_ONE)
         sys.stdout.write(ERASE_LINE)
 
+class Tests(unittest.TestCase):
+    def test_bitcoin_singlethreading(self):
+        start_time = time.time()
+        collect_bitcoin_data_singlethread()
+        end_time = time.time()
+        self.assertGreater(end_time-start_time, 1)
+
+    def test_bitcoin_multitheading(self):
+        start_time = time.time()
+        collect_bitcoin_data_multithread()
+        end_time = time.time()
+        self.assertLess(end_time - start_time, 5)
+
 
 if __name__ == '__main__':
-    # For singlethreading test
-    # collect_bitcoin_data_singlethread()
-
-    # For multithreading test
-    collect_bitcoin_data_multithread()
-
+    unittest.main()

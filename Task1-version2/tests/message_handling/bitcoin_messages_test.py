@@ -5,11 +5,12 @@ import socket
 import struct
 import time
 
+from message_handler_test import Node
 
 constant = {'magic_value': 0xd9b4bef9,
-             'peer_ip_address': '109.190.247.5',
-             'peer_tcp_port': 8333,
-             'buffer_size': 4096}
+            'peer_ip_address': '109.190.247.5',
+            'peer_tcp_port': 8333,
+            'buffer_size': 4096}
 
 
 def create_sub_version():
@@ -34,7 +35,7 @@ def create_getdata_payload():
     return payload
 
 
-def create_version_payload(peer_ip_address):
+def create_version_payload(peer_ip_address: str):
     version = 70015
     services = 1
     timestamp = int(time.time())
@@ -42,8 +43,17 @@ def create_version_payload(peer_ip_address):
     addr_peer = create_network_address(peer_ip_address, 8333)
     nonce = random.getrandbits(64)
     start_height = 0
-    payload = struct.pack('<LQQ26s26sQ16sL', version, services, timestamp, addr_peer,
-                          addr_local, nonce, create_sub_version(), start_height)
+    payload = struct.pack(
+        '<LQQ26s26sQ16sL',
+        version,
+        services,
+        timestamp,
+        addr_peer,
+        addr_local,
+        nonce,
+        create_sub_version(),
+        start_height
+    )
 
     return payload
 
@@ -59,7 +69,7 @@ def create_getaddr_payload():
     return payload
 
 
-def create_message(command, payload):
+def create_message(command: str, payload: bytes):
     magic = bytes.fromhex("F9BEB4D9")
     command = bytes(command, 'utf-8') + (12 - len(command)) * b"\00"
     length = struct.pack("I", len(payload))
@@ -79,7 +89,7 @@ def create_ping_payload() -> bytes:
     return payload
 
 
-def create_getheaders_payload(start_block_header_hash):
+def create_getheaders_payload(start_block_header_hash: bytes):
     version = struct.pack("i", 70015)
     hash_count = struct.pack("<b", 1)
     hash_stop = bytes.fromhex("00" * 32)
@@ -96,18 +106,18 @@ def create_getblocks_payload():
     return payload
 
 
-def handle_getheaders_message(node, response_data):
+def handle_getheaders_message(node: socket.socket, response_data: bytes):
     getheaders = binascii.hexlify(response_data)
     getheaders_index = str(getheaders).find('676574686561646572730000')
-    if len(getheaders[getheaders_index-2:]) == 40:
+    if len(getheaders[getheaders_index - 2:]) == 40:
         response_data += node.recv(constant['buffer_size'])
     info = binascii.hexlify(response_data)
     index = str(info).find('676574686561646572730000')
-    starting_hash = str(info)[index+50:]
+    starting_hash = str(info)[index + 50:]
     block_hash_size = 64
     block_hashes = []
     start_hash_index = 0
-    for i in range(1,3):
+    for i in range(1, 3):
         block_hashes.append(starting_hash[start_hash_index:block_hash_size])
         start_hash_index += 64
         block_hash_size += 64
@@ -133,17 +143,21 @@ if __name__ == '__main__':
     node = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     node.connect((constant['peer_ip_address'], constant['peer_tcp_port']))
     light_node = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    light_node.connect(('127.0.0.1', 8333))
+    try:
+        light_node.connect(('127.0.0.1', 8333))
+    except ConnectionRefusedError:
+        pass
 
     # Send message "version"
     node.send(version_message)
-    light_node.send(version_message)
     response_data = node.recv(constant['buffer_size'])
+    print(response_data)
     light_node.send(response_data)
 
     # Send message "verack"
     node.send(verack_message)
     response_data = node.recv(constant['buffer_size'])
+
     # Send message "getdata"
     node.send(getdata_message)
     messages.append(getdata_message)
@@ -156,8 +170,8 @@ if __name__ == '__main__':
 
     print('Best block hash: ', best_block_hash)
     print('Prev block hash: ', prev_block_hash)
-    print('Retreiving block hash data execution time: ', time.time()-start_time)
+    print('Retreiving block hash data execution time: ', time.time() - start_time)
+
     # Disconnect from node and Close the TCP connection
     node.close()
     light_node.close()
-

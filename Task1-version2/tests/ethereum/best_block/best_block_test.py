@@ -1,14 +1,10 @@
 import socket
-import struct
-import time
-import requests
-import rlp
+import unittest
 import json
 
-
-constant = {'peer_ip_address': '118.122.12.3',
-             'peer_tcp_port': 8545,
-             'buffer_size': 4096}
+constant = {'peer_ip_address': '65.109.22.107',
+            'peer_tcp_port': 8545,
+            'buffer_size': 4096}
 
 
 def create_message(message):
@@ -54,7 +50,7 @@ def decode_response_message(response):
     body_start = response.find('{')
     if 'transactions' in response:
         body_end = response.rfind('transactions')
-        response = response[body_start:body_end-2] + '}' + '}'
+        response = response[body_start:body_end - 2] + '}' + '}'
         message.update(result=json.loads(response)['result'])
     else:
         body_end = response.rfind('}')
@@ -63,45 +59,27 @@ def decode_response_message(response):
     return message
 
 
+class Tests(unittest.TestCase):
+    def test_ethereum_blocks(self):
+        getblock_payload = create_getblock_number_payload()
+        getblock_message = create_message(getblock_payload)
+        node = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        node.connect((constant['peer_ip_address'], constant['peer_tcp_port']))
+        node.send(getblock_message)
+        response = node.recv(constant['buffer_size'])
+        best_block_number = int(decode_response_message(response)['result'], 16)
+        getblockhash_payload = create_getblock_hash_payload(best_block_number)
+        getblockhash_message = create_message(getblockhash_payload)
+        node.send(getblockhash_message)
+        response = node.recv(constant['buffer_size'])
+        best_block_hash = decode_response_message(response)['result']['hash']
+        prev_block_number = best_block_number - 1
+        prev_block_hash = decode_response_message(response)['result']['parentHash']
+        node.close()
+        self.assertGreater(best_block_number, 10000000)
+        self.assertNotEqual(best_block_hash, prev_block_hash)
+        self.assertNotEqual(best_block_number, prev_block_number)
+
+
 if __name__ == '__main__':
-    start_time = time.time()
-
-    # Create Message to get best block number
-    getblock_payload = create_getblock_number_payload()
-    getblock_message = create_message(getblock_payload)
-
-    # Establish Node TCP Connection
-    node = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    node.connect((constant['peer_ip_address'], constant['peer_tcp_port']))
-
-    #Send get block number message to ETH node
-    node.send(getblock_message)
-
-    #Retrieving response
-    response = node.recv(constant['buffer_size'])
-    best_block_number = int(decode_response_message(response)['result'], 16)
-
-    # Create Message to get best block hash from received best number
-    getblockhash_payload = create_getblock_hash_payload(best_block_number)
-    getblockhash_message = create_message(getblockhash_payload)
-
-    # Send get block hash message to ETH node
-    node.send(getblockhash_message)
-
-    # Retreiving result
-    response = node.recv(constant['buffer_size'])
-    best_block_hash = decode_response_message(response)['result']['hash']
-
-    # Extract info about previous block
-    prev_block_number = best_block_number - 1
-    prev_block_hash = decode_response_message(response)['result']['parentHash']
-
-    #Show statistic
-    print('Retrieving Ethereum blockchain data execution time: ', time.time()-start_time)
-    print('Best block number: ', best_block_number)
-    print('Best block hash: ', best_block_hash)
-    print('Prev block number: ', prev_block_number)
-    print('Prev block hash: ', prev_block_hash)
-
-    # Disconnect from node and Close the TCP connection
-    node.close()
+    unittest.main()

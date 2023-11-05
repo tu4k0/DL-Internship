@@ -15,7 +15,7 @@ class BaseThread(threading.Thread, ABC):
     def stop(self):
         self.join()
 
-    def set_thread_name(self, name):
+    def set_thread_name(self, name: str):
         self.name = name
 
     def get_thread_status(self):

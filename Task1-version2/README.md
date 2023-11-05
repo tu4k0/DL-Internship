@@ -1,44 +1,36 @@
 # Dl-Internship. Task1-version2
 
-## Завдання
-Розробити міні-вузол, який здійснює нативне з'єднання з вузлом P2P мережі блокчейну та проводить моніторинг інформації облікових систем. 
+## Task Description
+Development of a mini-node that makes a native connection with a P2P node of the blockchain network and monitors the information of network systems.  
 
-## Загальна характеристика програми
-Сервіс представляє собою модульний додаток представлений у вигляді інтерфейсів:  
-base_blockchain - абстрактний базовий клас;   
-btc_blockchain - клас Bitcoin, містить основні методи для взаємодії та обміну повідомленнями з вузлом через P2P Mainnet мережу з використанням сокетів (PORT: 8333, MSG: magic + command + length + checksum);    
-eth_blockchin - клас Ethereum, містить основні методи для взаємодії та обміну повідомленнями з вузлом через P2P Mainnet мережу з використанням сокетів (PORT: 8545, MSG: JSONRPC);      
+## Project Reference
+The service is a modular application presented in the form of interfaces:  
+base_blockchain - abstract base class;  
+btc_blockchain - Bitcoin class, contains the main methods for interaction and exchange of messages with the node through the P2P Mainnet network using sockets (PORT: 8333, MSG: magic + command + length + checksum);  
+eth_blockchin - Ethereum class, contains basic methods for interaction and exchange of messages with a node through P2P Mainnet network using sockets (PORT: 8545, MSG: JSONRPC)  
 
-## Технології 
-- Мова програмування: Python 3.8.3;  
-- Середовище розробки: PyCharm Pro 2021.3.2;
+## Project Tech Stack 
+- Programming language: Python 3.10.10;
 - CLI: CMD (sys.argv);  
-- Механізм встановлення з'єднання з вузлом мережі: Socket (TCP message request/response);  
+- The mechanism for establishing a connection with a network node: Socket (TCP message request/response);  
+- Ethereum messages: JSON-RPC;  
+- Bitcoin messages: raw bytes (Bitcoin Core 70015);  
+- Database: MongoDB;  
+- Tests: unittests  
 
-## Процес запуску програми/сеансу
-У cmd за посиланням ...\application ввести команду python main.py -ip_address:port -node_number
+## To run the program
+1. In cmd, under the link .../Task1-version2/ activate virtual environment: venv/Scripts/activate;  
+2. Cd to Task1-version2/application/;  
+3. Enter the command python main.py ip_address:port node_number  
 
-## Екранні форми роботи програми
+## Supportable blockchains
+- Bitcoin;  
+- Ethereum;  
+- Polygon;  
+- BSC  
 
-# Оновлена Версія 3 - Оновлення збору статистики та інтеграція облікової мережі Ethereum  
-# Bitcoin  
-  
-![Image text](https://github.com/tu4k0/DL-Internship/blob/master/Task1-version2/app_images/version_3/Bitcoin_statistic.png)  
-
-# Ethereum  
-  
-![Image text](https://github.com/tu4k0/DL-Internship/blob/master/Task1-version2/app_images/version_3/Ethereum_statistic.png)  
-
-Опис виконання: користувач обирає облікову систему та задає IP адресу та порт вузла для підключення та кількість вузлів, з якими необхідно підтримувати з'єднання. Далі система у багатопотоковому режимі збирає статистику від кожного вузла та окремим потоком відображує зібрану статистику на екрані з таймаутом на оновлення.  
-
-Wireshark (BTC):  
-![Image text](https://github.com/tu4k0/DL-Internship/blob/master/Task1-version2/app_images/wireshark/wireshark_result.png)    
-
-## Шляхи розвитку проекту  
-- [] Нативний пошук вузлів у Ethereum;  
-- [] Підтримка та збір статистики транзакцій;  
-- [] Обробка та взаємодія з IPv6 адресами bitcoin вузлів;  
-- [] Зручний CLI;
-- [] Підтримка більшої кількості вузлів (масштабованість);
-- [] Створення програми трафіку надсилання та отримання повідомлень;  
-- [] Підтримка нових облікових мереж.  
+## Limitations and Scopes
+In EVM-based blockchains nodes discovery process computes using pre-downloaded csv files. To download actual nodes data visit the link and download .csv:  
+https://etherscan.io/nodetracker/nodes  
+To search Bitcoin node address for initial connection use data from next source:  
+https://bitnodes.io/nodes/?q=Satoshi:25.0.0  

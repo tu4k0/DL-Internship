@@ -7,7 +7,10 @@ import sys
 import time
 import threading
 import ipaddress
+import unittest
 import requests
+
+from functools import lru_cache
 
 amount_sent_messages = 0
 amount_received_messages = 0
@@ -108,7 +111,11 @@ class NodeThread(threading.Thread):
                 send_message(node, getdata_message)
                 while True:
                     if str(response_data).find('getheaders') != -1:
-                        best_block_hash, prev_block_hash = handle_getheaders_message(node, response_data)
+                        getheaders = binascii.hexlify(response_data)
+                        getheaders_index = str(getheaders).find('676574686561646572730000')
+                        if len(getheaders[getheaders_index - 2:]) == 40:
+                            response_data += receive_message(node)
+                        best_block_hash, prev_block_hash = handle_getheaders_message(response_data)
                         break
                     else:
                         response_data = receive_message(node)
@@ -132,14 +139,10 @@ class NodeThread(threading.Thread):
         self.prev_block_numbers.clear()
         self.prev_block_hashes.clear()
 
-
+@lru_cache(maxsize=None)
 def get_nodes(node, response_data, node_number, ip, port):
     found_nodes = {}
     found_nodes.update({str(ip):port})
-    getaddr = binascii.hexlify(response_data)
-    getaddr_index = str(getaddr).find('616464720000000000000000')
-    if len(getaddr[getaddr_index - 2:]) == 40:
-        response_data += receive_message(node)
     node_discovery = binascii.hexlify(response_data)
     index = str(node_discovery).find('616464720000000000000000')
     node_info_size = 12
@@ -158,7 +161,7 @@ def get_nodes(node, response_data, node_number, ip, port):
             node_info_size += 30
     return found_nodes
 
-
+@lru_cache(maxsize=None)
 def get_nodes_from_dns_seeds(node_number, ip_address, port):
     found_peers = dict()
     search_index = 0
@@ -178,20 +181,20 @@ def get_nodes_from_dns_seeds(node_number, ip_address, port):
     finally:
         return found_peers
 
-
+@lru_cache(maxsize=None)
 def create_sub_version():
     sub_version = "/Satoshi:0.24.1/"
 
     return b'\x0F' + sub_version.encode()
 
-
+@lru_cache(maxsize=None)
 def create_network_address(ip_address, port):
     network_address = struct.pack('>8s16sH', b'\x01',
                                   bytearray.fromhex("00000000000000000000ffff") + socket.inet_aton(ip_address), port)
 
     return network_address
 
-
+@lru_cache(maxsize=None)
 def create_getdata_payload():
     count = 0
     type = 2
@@ -200,7 +203,7 @@ def create_getdata_payload():
 
     return payload
 
-
+@lru_cache(maxsize=None)
 def create_version_payload(peer_ip_address):
     version = 70015
     services = 1
@@ -214,18 +217,18 @@ def create_version_payload(peer_ip_address):
 
     return payload
 
-
+@lru_cache(maxsize=None)
 def create_verack_payload():
     payload = bytearray.fromhex("f9beb4d976657261636b000000000000000000005df6e0e2")
 
     return payload
 
-
+@lru_cache(maxsize=None)
 def create_getaddr_payload():
     payload = b""
     return payload
 
-
+@lru_cache(maxsize=None)
 def create_message(command, payload):
     magic = bytes.fromhex("F9BEB4D9")
     command = bytes(command, 'utf-8') + (12 - len(command)) * b"\00"
@@ -238,14 +241,14 @@ def create_message(command, payload):
 
     return message
 
-
+@lru_cache(maxsize=None)
 def create_ping_payload() -> bytes:
     nonce = random.randint(1, 1 ** 32)
     payload = struct.pack('<Q', nonce)
 
     return payload
 
-
+@lru_cache(maxsize=None)
 def create_getheaders_payload(start_block_header_hash):
     version = struct.pack("i", 70015)
     hash_count = struct.pack("<b", 1)
@@ -253,7 +256,7 @@ def create_getheaders_payload(start_block_header_hash):
     payload = version + hash_count + start_block_header_hash + hash_stop
     return payload
 
-
+@lru_cache(maxsize=None)
 def create_getblocks_payload():
     version = struct.pack("i", 70015)
     hash_count = struct.pack("<b", 1)
@@ -262,7 +265,7 @@ def create_getblocks_payload():
     payload = version + hash_count + start_block_header_hash + hash_stop
     return payload
 
-
+@lru_cache(maxsize=None)
 def get_best_block_height(hash):
     block_height_message = f"https://blockstream.info/api/block/{hash}"
     response = requests.get(block_height_message)
@@ -287,38 +290,33 @@ def collect_bitcoin_data_multithread(ip, port, node_number):
         send_message(node, verack_message)
         response_data = receive_message(node)
         send_message(node, getaddr_message)
-        while True:
+        while 1:
             if str(response_data).find('addr') != -1:
+                getaddr = binascii.hexlify(response_data)
+                getaddr_index = str(getaddr).find('616464720000000000000000')
+                if len(getaddr[getaddr_index - 2:]) == 40:
+                    response_data += receive_message(node)
                 found_peers = get_nodes(node, response_data, node_number, ip, port)
                 break
             else:
                 response_data = receive_message(node)
         node.close()
-    statistic_id = 1
-    while True:
-        start_time = time.perf_counter()
-        node_threads = []
-        for ip, port in found_peers.items():
-            node = NodeThread(ip, port)
-            node.start()
-            node_threads.append(node)
-        for node in node_threads:
-            node.join()
-        statistic_thread = NodeThread(None, None)
-        print(f'Statistic ID: {statistic_id}')
-        statistic_thread.start()
-        statistic_thread.collect_statistic()
-        statistic_thread.clear_statistic()
-        statistic_thread.join()
-        print('(multithread) Retrieving Bitcoin blockchain data execution time: ', time.perf_counter() - start_time)
-        statistic_id += 1
+    start_time = time.perf_counter()
+    node_threads = []
+    for ip, port in found_peers.items():
+        node = NodeThread(ip, port)
+        node.start()
+        node_threads.append(node)
+    for node in node_threads:
+        node.join()
+    statistic_thread = NodeThread(None, None)
+    statistic_thread.start()
+    statistic_thread.collect_statistic()
+    statistic_thread.clear_statistic()
+    statistic_thread.join()
 
-
-def handle_getheaders_message(node, response_data):
-    getheaders = binascii.hexlify(response_data)
-    getheaders_index = str(getheaders).find('676574686561646572730000')
-    if len(getheaders[getheaders_index-2:]) == 40:
-        response_data += receive_message(node)
+@lru_cache(maxsize=None)
+def handle_getheaders_message(response_data):
     info = binascii.hexlify(response_data)
     index = str(info).find('676574686561646572730000')
     starting_hash = str(info)[index+50:]
@@ -344,9 +342,16 @@ def delete_last_lines(n):
         sys.stdout.write(ERASE_LINE)
 
 
-if __name__ == '__main__':
-    ip_address = input('Enter node ip: ')
-    port = int(input('Enter port: '))
-    node_number = int(input('Enter node number: '))
-    collect_bitcoin_data_multithread(ip_address, port, node_number)
+class Tests(unittest.TestCase):
+    def test_bitcoin_optimization(self):
+        ip_address = '109.190.247.5'
+        port = 8333
+        node_number = 20
+        start = time.perf_counter()
+        collect_bitcoin_data_multithread(ip_address, port, node_number)
+        end = time.perf_counter()
+        self.assertLess(end-start, 1)
 
+
+if __name__ == '__main__':
+    unittest.main()

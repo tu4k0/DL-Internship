@@ -20,7 +20,7 @@ class BitcoinService:
     bitcoin: Bitcoin
     bitcoin_p2p: BitcoinP2P
 
-    def __init__(self, user_request):
+    def __init__(self, user_request: list):
         self.bitcoin = Bitcoin()
         self.bitcoin_p2p = BitcoinP2P()
         self.ip = user_request[0]
@@ -54,7 +54,12 @@ class BitcoinService:
                     if len(getaddr[getaddr_index - 2:]) == 40:
                         response_data += self.bitcoin_p2p.receive_message(node)
                         bitcoin_light_node.send(response_data)
-                    found_peers = self.get_nodes_from_getaddr(response_data, self.node_number, self.ip, self.port)
+                    found_peers = self.get_nodes_from_getaddr(
+                        response_data,
+                        self.node_number,
+                        self.ip,
+                        self.port
+                    )
                     break
                 else:
                     response_data = self.bitcoin_p2p.receive_message(node)
@@ -66,7 +71,13 @@ class BitcoinService:
             start_time = time.perf_counter()
             node_threads = []
             for ip, port in found_peers.items():
-                node = BitcoinNodeThread(ip, port, self.bitcoin, self.bitcoin_p2p, bitcoin_light_node)
+                node = BitcoinNodeThread(
+                    ip,
+                    port,
+                    self.bitcoin,
+                    self.bitcoin_p2p,
+                    bitcoin_light_node
+                )
                 node.start()
                 node_threads.append(node)
             for node in node_threads:
@@ -81,7 +92,13 @@ class BitcoinService:
             bitcoin_statistic.clean_statistics()
             bitcoin_statistic.clear_statistic()
 
-    def get_nodes_from_getaddr(self, response_data, node_number, ip_address, port):
+    def get_nodes_from_getaddr(
+            self,
+            response_data: bytes,
+            node_number: int,
+            ip_address: str,
+            port: int
+    ) -> dict[str, int]:
         found_nodes = {}
         found_nodes.update({str(ip_address): port})
         node_info_size = 12
@@ -103,7 +120,12 @@ class BitcoinService:
 
         return found_nodes
 
-    def get_nodes_from_dns_seeds(self, node_number, ip_address, port) -> dict:
+    def get_nodes_from_dns_seeds(
+            self,
+            node_number: int,
+            ip_address: str,
+            port: int
+    ) -> dict[str, str | int]:
         found_peers = dict()
         search_index = 0
         found_peers.update({ip_address: port})

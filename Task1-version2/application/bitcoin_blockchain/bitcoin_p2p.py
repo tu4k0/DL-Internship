@@ -14,7 +14,7 @@ class BitcoinP2P(BaseBlockchain):
     def __init__(self):
         super(BitcoinP2P, self).__init__()
 
-    def create_message(self, command, payload) -> bytes:
+    def create_message(self, command: str, payload: bytes) -> bytes:
         magic = bytes.fromhex(BITCOIN_MAINNET_MAGIC)
         command = bytes(command, 'utf-8') + (12 - len(command)) * b"\00"
         length = struct.pack("I", len(payload))
@@ -26,7 +26,7 @@ class BitcoinP2P(BaseBlockchain):
 
         return message
 
-    def create_version_payload(self, node_ip) -> bytes:
+    def create_version_payload(self, node_ip: str) -> bytes:
         version = BITCOIN_MAINNET_VERSION
         services = 1
         timestamp = int(time.time())
@@ -34,18 +34,30 @@ class BitcoinP2P(BaseBlockchain):
         addr_peer = self.create_network_address(node_ip, 8333)
         nonce = random.getrandbits(64)
         start_height = 0
-        payload = struct.pack('<LQQ26s26sQ16sL', version, services, timestamp, addr_peer,
-                              addr_local, nonce, self.create_sub_version(), start_height)
+        payload = struct.pack(
+            '<LQQ26s26sQ16sL',
+            version,
+            services,
+            timestamp,
+            addr_peer,
+            addr_local,
+            nonce,
+            self.create_sub_version(),
+            start_height
+        )
 
         return payload
 
     def create_sub_version(self) -> bytes:
         return b'\x0F' + BITCOIN_USER_AGENT.encode()
 
-    def create_network_address(self, ip_address, port) -> bytes:
-        network_address = struct.pack('>8s16sH', b'\x01',
-                                      bytearray.fromhex(BITCOIN_IPV4_SUBNET) + socket.inet_aton(ip_address),
-                                      port)
+    def create_network_address(self, ip_address: str, port: int) -> bytes:
+        network_address = struct.pack(
+            '>8s16sH',
+            b'\x01',
+            bytearray.fromhex(BITCOIN_IPV4_SUBNET) + socket.inet_aton(ip_address),
+            port
+        )
 
         return network_address
 
@@ -77,7 +89,7 @@ class BitcoinP2P(BaseBlockchain):
 
         return payload
 
-    def create_getheaders_payload(self, start_block_hash) -> bytes:
+    def create_getheaders_payload(self, start_block_hash: str) -> bytes:
         version = struct.pack("i", BITCOIN_MAINNET_VERSION)
         hash_count = struct.pack("<b", 1)
         block_locator_hashes = bytes.fromhex(start_block_hash)
@@ -86,7 +98,7 @@ class BitcoinP2P(BaseBlockchain):
 
         return payload
 
-    def create_getblocks_payload(self, start_block_hash, end_block_hash) -> bytes:
+    def create_getblocks_payload(self, start_block_hash: str, end_block_hash: str) -> bytes:
         version = struct.pack("i", BITCOIN_MAINNET_VERSION)
         hash_count = struct.pack("<b", 1)
         hash_stop = bytes.fromhex(end_block_hash)
